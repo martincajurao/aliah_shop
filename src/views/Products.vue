@@ -111,7 +111,6 @@
     </template>
 
     <template v-slot:top>
-     
         <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
             <v-card-title class="headline">Do you want to delete this product?</v-card-title>
@@ -163,26 +162,13 @@
 </template>
 <script>
 import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct} from "@/api/product.api";
+import {apiGetAllCategory} from "@/api/category.api";
 import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
   export default {
     mixins: [ImagePreviewMixin],
     name:'imageUpload',
     data: () => ({
-      items:[
-        {
-        text:'Category 1',
-        value:'1'
-        },
-        {
-        text:'Category 2',
-        value:'2'
-        },
-        {
-        text:'Category 3',
-        value:'3'
-        },
-      ],
-      
+      items:[{ text: '', value: '' }],
       previewImage:require('@/assets/default.jpg'),
       search:'',
       snackbar:false,
@@ -247,9 +233,13 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
     methods: {
       async initialize () {
         await apiGetAllProducts().then(({data}) => {
-              this.desserts = data
-              this.tblLoader=false
-                console.log(data)
+          this.desserts = data
+          this.tblLoader=false
+          console.log(data)
+        })
+        await apiGetAllCategory().then((res) =>{
+          this.items.text=res.data.name
+          console.log(res, 'category')
         })
       },
       editItem (item) {
