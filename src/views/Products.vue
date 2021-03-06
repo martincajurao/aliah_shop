@@ -58,9 +58,12 @@
                       label="Stocks"
                     ></v-text-field>
                      <v-select
-                     v-model="editedItem.product_category"
+                      v-model="editedItem.product_category"
                       :items="items"
-                      label="Select Category"
+                      item-text="name"
+                      item-value="id"
+                      label="Category"
+                      dense
                     ></v-select>
                   </v-col>
                   <v-col cols="12">
@@ -125,13 +128,13 @@
     </template>
 
     <template v-slot:item.actions="{ item }">
-      <v-icon small class="mr-2 indigo--text" @click="editItem(item)">
+      <v-icon small class="mr-2 info--text" @click="editItem(item)">
         mdi-eye
       </v-icon>
       <v-icon small class="mr-2 info--text" @click="editItem(item)">
         mdi-pencil
       </v-icon>
-      <v-icon small @click="deleteItem(item)" class=" pink--text">
+      <v-icon small @click="deleteItem(item)" class=" info--text">
         mdi-delete
       </v-icon>
     </template>
@@ -161,14 +164,14 @@
   </div>
 </template>
 <script>
-import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct} from "@/api/product.api";
+import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct} from "@/api/product.api";
 import {apiGetAllCategory} from "@/api/category.api";
 import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
   export default {
     mixins: [ImagePreviewMixin],
     name:'imageUpload',
     data: () => ({
-      items:[{ text: '', value: '' }],
+      items:[],
       previewImage:require('@/assets/default.jpg'),
       search:'',
       snackbar:false,
@@ -184,7 +187,7 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
           sortable: false,
           value: 'name',
         },
-        { text: 'Category', value: 'desc' },
+        { text: 'Category', value: 'category.name' },
         { text: 'Price', value: 'price' },
         { text: 'Stocks', value: 'stocks' },
         { text: 'Status', value: 'stocks' },
@@ -231,21 +234,25 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       this.initialize()
     },
     methods: {
-      async initialize () {
-        await apiGetAllProducts().then(({data}) => {
+      initialize () {
+        apiGetAllProducts().then(({data}) => {
           this.desserts = data
           this.tblLoader=false
           console.log(data)
         })
-        await apiGetAllCategory().then((res) =>{
-          this.items.text=res.data.name
-          console.log(res, 'category')
+        apiGetAllCategory().then(({data}) =>{
+          this.items=data
         })
       },
       editItem (item) {
         this.editedIndex = this.desserts.indexOf(item)
-        this.editedItem = Object.assign({}, item)
         this.dialog = true
+        apiGetProduct(item.id).then(({data}) => {
+          this.editedItem = data
+          this.editedItem.product_category=data.category.id
+          console.log(data.img)
+           this.previewImage=`http://127.0.0.1:8000/images/${data.img}`
+        })
       },
       deleteItem (item) {
         this.editedIndex = this.desserts.indexOf(item)
