@@ -1,5 +1,5 @@
 <template>
-<div class="container mx-3">
+<div class="container mx-3 clickable">
   <v-card-title>
       <h3>Products</h3>
       <v-dialog v-model="dialog" max-width="500px">

@@ -153,10 +153,7 @@
         { icon: 'mdi-magnify', text: 'Search', route:'/recherches' },
       ],
     }),
-    computed: {
 
-
-    },
     methods: {
       onScroll (e) {
         if (typeof window === 'undefined') return
@@ -179,7 +176,7 @@
 margin: 0;
 padding: 0;
 }
-.clickable {
+*{
     -webkit-app-region: no-drag;
 }
 ::-webkit-scrollbar {
