@@ -9,7 +9,7 @@
               class="mx-2"
               v-bind="attrs"
               v-on="on"
-              small           
+              small   
             >
               Add new
             </v-btn>
@@ -195,26 +195,8 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       ],
       desserts: [],
       editedIndex: -1,
-      editedItem: {
-        index: null,
-        name: null,
-        desc:null,
-        price:null,
-        stocks:null,
-        product_category:null,
-        img_name:null,
-        image:null,
-      },
-      defaultItem: {
-        index: null,
-        name: null,
-        desc: null,
-        price: null,
-        stocks: null,
-        product_category:null,
-        img_name:null,
-        image:null,
-      },
+      editedItem: {},
+      defaultItem: {},
     }),
     computed: {
       formTitle () {
@@ -245,13 +227,13 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
         })
       },
       editItem (item) {
+        this.previewImage=require('@/assets/default.jpg')
         this.editedIndex = this.desserts.indexOf(item)
         this.dialog = true
         apiGetProduct(item.id).then(({data}) => {
           this.editedItem = data
           this.editedItem.product_category=data.category.id
-          console.log(data.img)
-           this.previewImage=`http://127.0.0.1:8000/images/${data.img}`
+          this.previewImage=`http://127.0.0.1:8000/images/${data.img}`
         })
       },
       deleteItem (item) {
@@ -291,7 +273,15 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       save () {
 
         if (this.editedIndex > -1) {
-          apiUpdateProduct(this.editedItem,this.editedItem.id).then(() => {
+          const formData = new FormData
+          formData.set('image', this.editedItem.image)
+          formData.set('name', this.editedItem.name)
+          formData.set('desc', this.editedItem.desc)
+          formData.set('price', this.editedItem.price)
+          formData.set('stocks', this.editedItem.stocks)
+          formData.set('product_category', this.editedItem.product_category)
+          formData.append('_method', 'patch');
+          apiUpdateProduct(formData,this.editedItem.id).then(() => {
             this.text ="Updated Successfully!"
             this.snackbar=true
             this.tblLoader=true
