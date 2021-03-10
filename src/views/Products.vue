@@ -9,7 +9,8 @@
               class="mx-2"
               v-bind="attrs"
               v-on="on"
-              small   
+              small
+              @click="clear"  
             >
               Add new
             </v-btn>
@@ -275,6 +276,7 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
         if (this.editedIndex > -1) {
           const formData = new FormData
           formData.set('image', this.editedItem.image)
+          formData.set('img', this.editedItem.img)
           formData.set('name', this.editedItem.name)
           formData.set('desc', this.editedItem.desc)
           formData.set('price', this.editedItem.price)
@@ -313,6 +315,9 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
           this.editedItem.img_name = image.name
         };
       },
+      clear(){
+        this.previewImage=require('@/assets/default.jpg')
+      }
    
        
     },
