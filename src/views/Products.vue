@@ -17,7 +17,7 @@
           </template>
 <!-- form ###################################################### -->
           <v-card >
-          <v-form   ref="form" lazy-validation0> 
+          <v-form  @submit.prevent="save"  ref="form" > 
             <v-card-title class="mb-0" >
               <span class="headline">{{ formTitle }}</span>
             </v-card-title>
@@ -36,6 +36,7 @@
                         width="180px" 
                         />
                         <input
+                        required
                         class="mt-2 pt-1" 
                         chips 
                         width="150px"
@@ -49,6 +50,7 @@
                     <v-text-field
                       v-model="editedItem.name"
                       label="Product name"
+                      required
                     ></v-text-field>
                     <v-text-field
                       v-model="editedItem.price"
@@ -83,7 +85,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" outlined text @click="close"> Cancel</v-btn>
-              <v-btn color="info" @click="save" >Save</v-btn>
+              <v-btn color="info" type="submit" @click="save" >Save</v-btn>
             </v-card-actions>
           </v-form>
           </v-card>
@@ -100,6 +102,7 @@
     </v-card-title>
 
   <v-data-table
+  
     :headers="headers"
     :items="desserts"
     :search="search"
@@ -109,7 +112,10 @@
     loading-text="Loading... Please wait"
   >
     <template v-slot:item.stocks="{ item }">
-        <v-chip :color="getColor(item.stocks)" dark>
+        <v-chip 
+        :color="getColor(item.stocks)" 
+        outlined
+        >
         {{ item.stocks }}
         </v-chip>
     </template>
@@ -191,12 +197,12 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
         { text: 'Category', value: 'category.name' },
         { text: 'Price', value: 'price' },
         { text: 'Stocks', value: 'stocks' },
-        { text: 'Status', value: 'stocks' },
+        // { text: 'Status', value: 'stocks' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
       desserts: [],
       editedIndex: -1,
-      editedItem: {},
+      editedItem: {price:1,stocks:1},
       defaultItem: {},
     }),
     computed: {
@@ -273,7 +279,9 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
 
       save () {
 
+
         if (this.editedIndex > -1) {
+          
           const formData = new FormData
           formData.set('image', this.editedItem.image)
           formData.set('img', this.editedItem.img)
@@ -290,6 +298,10 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
             this.initialize()
           })
         } else {
+          if(this.previewImage==null){
+            alert('Please select an Image')
+            return
+          }
           const formData = new FormData
           formData.set('image', this.editedItem.image)
           formData.set('name', this.editedItem.name)

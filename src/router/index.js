@@ -24,7 +24,7 @@ Vue.use(VueRouter)
   {
     path: '/revenue',
     name: 'revenue',
-    component: () => import(/* webpackChunkName: "products" */ '@/components/HelloWorld.vue')
+    component: () => import(/* webpackChunkName: "products" */ '../views/Home.vue')
   }
 ]
 
