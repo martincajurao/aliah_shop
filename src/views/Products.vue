@@ -1,5 +1,6 @@
 <template>
 <div class="container mx-3 clickable">
+  
   <v-card-title>
       <h3>Products</h3>
       <v-dialog v-model="dialog" max-width="500px">
@@ -17,7 +18,7 @@
           </template>
 <!-- form ###################################################### -->
           <v-card >
-          <v-form  @submit.prevent="save"  ref="form" > 
+          <v-form   ref="form" lazy-validation0 @submit.prevent="save" > 
             <v-card-title class="mb-0" >
               <span class="headline">{{ formTitle }}</span>
             </v-card-title>
@@ -36,7 +37,10 @@
                         width="180px" 
                         />
                         <input
-                        required
+                        v-validate="'required'"  
+                        :error-messages="errors.collect('Product Image')"
+                        data-vv-name="Product Image"
+                         hide-details="auto"
                         class="mt-2 pt-1" 
                         chips 
                         width="150px"
@@ -50,15 +54,24 @@
                     <v-text-field
                       v-model="editedItem.name"
                       label="Product name"
-                      required
+                      v-validate="'required|email'"  
+                      :error-messages="errors.collect('Product Name')"
+                      data-vv-name="Product Name"
+                      hide-details="auto"
                     ></v-text-field>
                     <v-text-field
                       v-model="editedItem.price"
                       label="Price"
+                      v-validate="'required|decimal'"  
+                      :error-messages="errors.collect('price')"
+                      data-vv-name="price"
                     ></v-text-field>
                     <v-text-field
                       v-model="editedItem.stocks"
                       label="Stocks"
+                      v-validate="'required|decimal'"  
+                      :error-messages="errors.collect('Stocks')"
+                      data-vv-name="Stocks"
                     ></v-text-field>
                      <v-select
                       v-model="editedItem.product_category"
@@ -67,6 +80,9 @@
                       item-value="id"
                       label="Category"
                       dense
+                      v-validate="'required'"  
+                      :error-messages="errors.collect('Product Category')"
+                      data-vv-name="Product Category"
                     ></v-select>
                   </v-col>
                   <v-col cols="12">
@@ -85,7 +101,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" outlined text @click="close"> Cancel</v-btn>
-              <v-btn color="info" type="submit" @click="save" >Save</v-btn>
+              <v-btn color="info" @click="save" >Save</v-btn>
             </v-card-actions>
           </v-form>
           </v-card>
@@ -120,6 +136,16 @@
         </v-chip>
     </template>
 
+    <template v-slot:item.img="{ item }">
+        <img
+          width="50px"
+          height="50px"
+          class="mt-2 pt-0"
+          :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"
+          :src="`http://127.0.0.1:8000/images/${item.img}`"
+        >
+    </template>
+
     <template v-slot:top>
         <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
@@ -148,7 +174,8 @@
     <template v-slot:no-data>
       <v-btn color="primary" @click="initialize">Reset</v-btn>
     </template>
-    
+
+
   </v-data-table>
   
     <v-snackbar
@@ -187,6 +214,7 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       dialog: false,
       dialogDelete: false,
       headers: [
+        { text: "Image", value: "img", sortable: false },
         { text: 'Product code', value: 'id' },
         {
           text: 'Product Name',
@@ -278,10 +306,8 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       },
 
       save () {
-
-
+        
         if (this.editedIndex > -1) {
-          
           const formData = new FormData
           formData.set('image', this.editedItem.image)
           formData.set('img', this.editedItem.img)
@@ -298,22 +324,23 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
             this.initialize()
           })
         } else {
-          if(this.previewImage==null){
-            alert('Please select an Image')
-            return
-          }
-          const formData = new FormData
-          formData.set('image', this.editedItem.image)
-          formData.set('name', this.editedItem.name)
-          formData.set('desc', this.editedItem.desc)
-          formData.set('price', this.editedItem.price)
-          formData.set('stocks', this.editedItem.stocks)
-          formData.set('product_category', this.editedItem.product_category)
-          apiCreateProduct(formData).then(() => {
-            this.snackbar=true
-            this.tblLoader=true
-            this.initialize()
-          })
+          
+            this.$validator.validateAll().then(result => {
+              if (result){
+                const formData = new FormData
+                formData.set('image', this.editedItem.image)
+                formData.set('name', this.editedItem.name)
+                formData.set('desc', this.editedItem.desc)
+                formData.set('price', this.editedItem.price)
+                formData.set('stocks', this.editedItem.stocks)
+                formData.set('product_category', this.editedItem.product_category)
+                apiCreateProduct(formData).then(() => {
+                  this.snackbar=true
+                  this.tblLoader=true
+                  this.initialize()
+                })
+              }
+            });
         }
         this.close()
       },
