@@ -2,7 +2,7 @@
 <div class="container mx-3 clickable">
   
   <v-card-title>
-      <h3>Products</h3>
+      <h3>Clients</h3>
       <v-dialog v-model="dialog" max-width="500px">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
@@ -25,71 +25,53 @@
        
             <v-card-text class="my-0 py-0">
               <v-container class="my-0 py-0">
+                <h3 class="mb-4">Select Avatar</h3>
+                <v-row class="my-0 py-0 justify-center">
+                  <a href='#target1' >
+                    <v-avatar id='target1' size="70px" class="mx-2 target avatar" @click="editedItem.img='1.png'">
+                      <img src="http://127.0.0.1:8000/avatar/1.png" >
+                    </v-avatar>
+                  </a>
+                  <a href='#target2' >
+                    <v-avatar id='target2' size="70px" class="mx-2 target avatar" @click="editedItem.img='2.png'">
+                      <img src="http://127.0.0.1:8000/avatar/2.png" >
+                    </v-avatar>
+                  </a>
+                  <a href='#target3' >
+                    <v-avatar id='target3' size="70px" class="mx-2 target avatar" @click="editedItem.img='3.png'">
+                      <img src="http://127.0.0.1:8000/avatar/3.png" >
+                    </v-avatar>
+                  </a>
+                  <a href='#target4' >
+                    <v-avatar id='target4' size="70px" class="mx-2 target avatar" @click="editedItem.img='4.png'">
+                      <img src="http://127.0.0.1:8000/avatar/4.png" >
+                    </v-avatar>
+                  </a>
+                  <a href='#target5' >
+                    <v-avatar id='target5' size="70px" class="mx-2 target avatar" @click="editedItem.img='5.png'">
+                      <img src="http://127.0.0.1:8000/avatar/5.png" >
+                    </v-avatar>
+                  </a>
+                </v-row>
                 <v-row class="my-0 py-0">
-                  <v-col cols="6" >
-                    <v-card  flat>
-                      <v-card-title>Image Preview</v-card-title>
-                      <v-card-text>
-                        <img 
-                        :src="previewImage" 
-                        class="uploading-image mt-0 "
-                        height="180px"
-                        width="180px" 
-                        />
-                        <input
-                         hide-details="auto"
-                        class="mt-2 pt-1" 
-                        width="150px"
-                        type="file" 
-                        accept="image/jpeg" 
-                        @change="uploadImage">
-                      </v-card-text>
-                    </v-card>
-                  </v-col>
-                  <v-col cols="6" >
+                  <v-col cols="12" >
                     <v-text-field
                       v-model="editedItem.name"
-                      label="Product name"
+                      label="Name"
                       v-validate="'required'"  
-                      :error-messages="errors.collect('Product Name')"
-                      data-vv-name="Product Name"
+                      :error-messages="errors.collect('Name')"
+                      data-vv-name="Name"
                       hide-details="auto"
                     ></v-text-field>
+                    <br>
                     <v-text-field
-                      v-model="editedItem.price"
-                      label="Price"
-                      v-validate="'required|decimal'"  
-                      :error-messages="errors.collect('price')"
-                      data-vv-name="price"
+                      v-model="editedItem.phone"
+                      label="Phone #"
+                      v-validate="'required|digits:11'"  
+                      :error-messages="errors.collect('phone')"
+                      data-vv-name="phone"
                     ></v-text-field>
-                    <v-text-field
-                      v-model="editedItem.stocks"
-                      label="Stocks"
-                      v-validate="'required|decimal'"  
-                      :error-messages="errors.collect('Stocks')"
-                      data-vv-name="Stocks"
-                    ></v-text-field>
-                     <v-select
-                      v-model="editedItem.product_category"
-                      :items="items"
-                      item-text="name"
-                      item-value="id"
-                      label="Category"
-                      dense
-                      v-validate="'required'"  
-                      :error-messages="errors.collect('Product Category')"
-                      data-vv-name="Product Category"
-                    ></v-select>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-textarea
-                      height="100px"
-                      dense
-                      v-model="editedItem.desc"
-                      label="Product Description"
-                      outlined
-                      class="mb-0"
-                    ></v-textarea>
+                    
                   </v-col>
                 </v-row>
               </v-container>
@@ -117,36 +99,31 @@
 
   <v-data-table
     :headers="headers"
-    :items="desserts"
+    :items="clients"
     :search="search"
     sort-by="name"
     class="elevation-1"
     :loading="tblLoader"
     loading-text="Loading... Please wait"
   >
-    <template v-slot:item.stocks="{ item }">
-        <v-chip 
-        :color="getColor(item.stocks)" 
-        outlined
-        >
-        {{ item.stocks }}
-        </v-chip>
-    </template>
-
-    <template v-slot:item.img="{ item }">
+    
+    <template v-slot:item.name="{ item }" >
+      <v-row class="vertical-align: bottom;">
         <img
           width="50px"
-          height="45px"
-          class="mt-2 pt-0"
+          height="50px"
+          class="mt-0 py-1 ml-2"
           :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"
-          :src="`http://127.0.0.1:8000/images/${item.img}`"
+          :src="`http://127.0.0.1:8000/avatar/${item.img}`"
         >
+        <strong class="mt-4 ml-3">{{item.name}}</strong>
+      </v-row>
     </template>
 
     <template v-slot:top>
         <v-dialog v-model="dialogDelete" max-width="500px">
           <v-card>
-            <v-card-title class="headline">Do you want to delete this product?</v-card-title>
+            <v-card-title class="headline">Do you want to delete this Client?</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-3" text @click="closeDelete">Cancel</v-btn>
@@ -171,19 +148,13 @@
     <template v-slot:no-data>
       <v-btn color="primary" @click="initialize">Reset</v-btn>
     </template>
-
-
   </v-data-table>
   
     <v-snackbar
       v-model="snackbar"
       color="green darken-3"
-      width="100%"
+      width="500px"
       class="px-5"
-      max-width="100%"
-      tile
-      app
-      
     >
       {{ text }}
       <template v-slot:action="{ attrs }">
@@ -199,14 +170,10 @@
   </div>
 </template>
 <script>
-import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct} from "@/api/product.api";
-import {apiGetAllCategory} from "@/api/category.api";
-import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
+import {apiGetAllClients,apiUpdateClientData,apiCreateClient,apiDeleteClient,apiGetClient} from "@/api/client.api";
+
   export default {
-    mixins: [ImagePreviewMixin],
-    name:'imageUpload',
     data: () => ({
-      items:[],
       previewImage:require('@/assets/default.jpg'),
       search:'',
       snackbar:false,
@@ -215,28 +182,28 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       dialog: false,
       dialogDelete: false,
       headers: [
-        { text: "Image", value: "img", sortable: false },
-        { text: 'Product code', value: 'id' },
+        // { text: 'Client ID', value: 'id' },
         {
-          text: 'Product Name',
+          text: 'Client',
           align: 'start',
           sortable: false,
           value: 'name',
         },
-        { text: 'Category', value: 'category.name' },
-        { text: 'Price', value: 'price' },
-        { text: 'Stocks', value: 'stocks' },
-        // { text: 'Status', value: 'stocks' },
+        { text: 'Phone #', value: 'phone' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
-      desserts: [],
+      clients: [],
       editedIndex: -1,
-      editedItem: {price:1,stocks:1,desc:''},
+      editedItem: {
+        name:'',
+        phone:'',
+        img:''
+        },
       defaultItem: {},
     }),
     computed: {
       formTitle () {
-        return this.editedIndex === -1 ? 'New Product' : 'Update Product'
+        return this.editedIndex === -1 ? 'New Client' : 'Update Client'
       },
     },
     watch: {
@@ -249,37 +216,34 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
     },
  
     mounted () {
+      this.editedItem.img = Math.floor(Math.random()*(5-1+1)+1)+'.png';
       this.initialize()
     },
     methods: {
       initialize () {
-        apiGetAllProducts().then(({data}) => {
-          this.desserts = data
+        apiGetAllClients().then(({data}) => {
+          this.clients = data
           this.tblLoader=false
-          this.uploadImage(data.img)
-          console.log(data)
+          console.log(data, 'clients')
         })
-        apiGetAllCategory().then(({data}) =>{
-          this.items=data
-        })
+        
+  
       },
       editItem (item) {
-        this.previewImage=require('@/assets/default.jpg')
-        this.editedIndex = this.desserts.indexOf(item)
+        this.editedIndex = this.clients.indexOf(item)
         this.dialog = true
-        apiGetProduct(item.id).then(({data}) => {
+        apiGetClient(item.id).then(({data}) => {
           this.editedItem = data
-          this.editedItem.product_category=data.category.id
           this.previewImage=`http://127.0.0.1:8000/images/${data.img}`
         })
       },
       deleteItem (item) {
-        this.editedIndex = this.desserts.indexOf(item)
+        this.editedIndex = this.clients.indexOf(item)
         this.editedItem = Object.assign({}, item)
         this.dialogDelete = true
       },
       deleteItemConfirm () {
-        apiDeleteProduct(this.editedItem.id).then(()=>{
+        apiDeleteClient(this.editedItem.id).then(()=>{
           this.text ="1 record successfully deleted!"
           this.snackbar=true
           this.tblLoader=true
@@ -301,25 +265,11 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
           this.editedIndex = -1
         })
       },
-      getColor (val) {
-        if (val < 10) return 'red'
-        else if (val < 20) return 'orange'
-        else return 'green'
-      },
 
       save () {
         
         if (this.editedIndex > -1) {
-          const formData = new FormData
-          formData.set('image', this.editedItem.image)
-          formData.set('img', this.editedItem.img)
-          formData.set('name', this.editedItem.name)
-          formData.set('desc', this.editedItem.desc)
-          formData.set('price', this.editedItem.price)
-          formData.set('stocks', this.editedItem.stocks)
-          formData.set('product_category', this.editedItem.product_category)
-          formData.append('_method', 'patch');
-          apiUpdateProduct(formData,this.editedItem.id).then(() => {
+          apiUpdateClientData(this.editedItem,this.editedItem.id).then(() => {
             this.text ="Updated Successfully!"
             this.snackbar=true
             this.tblLoader=true
@@ -330,14 +280,7 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
           
             this.$validator.validateAll().then(result => {
               if (result){
-                const formData = new FormData
-                formData.set('image', this.editedItem.image)
-                formData.set('name', this.editedItem.name)
-                formData.set('desc', this.editedItem.desc)
-                formData.set('price', this.editedItem.price)
-                formData.set('stocks', this.editedItem.stocks)
-                formData.set('product_category', this.editedItem.product_category)
-                apiCreateProduct(formData).then(() => {
+                apiCreateClient(this.editedItem).then(() => {
                   this.snackbar=true
                   this.tblLoader=true
                   this.close()
@@ -348,16 +291,7 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
         }
         
       },
-      uploadImage(e){
-        const image = e.target.files[0];
-        const reader = new FileReader();
-        reader.readAsDataURL(image);
-        reader.onload = e =>{
-          this.previewImage = e.target.result;
-          this.editedItem.image = image
-          this.editedItem.img_name = image.name
-        };
-      },
+    
       clear(){
         this.previewImage=require('@/assets/default.jpg')
       }
@@ -375,5 +309,25 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
  .uploading-image{
      display:flex;
    }
+  .avatar:hover{
+    transform: scale(1.2);
+    transition: all .3s ease-in-out;
+    -webkit-box-shadow: 0 5px 10px #777;
+    -moz-box-shadow: 0 5px 10px #777;
+    box-shadow: 0 5px 10px #777;
+  }
 
+  .avatar{
+    transition: all .4s ease-in-out;
+    cursor: pointer;
+  }
+
+:target {
+  transform: scale(1.2);
+    transition: all .3s ease-in-out;
+    -webkit-box-shadow: 0 5px 10px #777;
+    -moz-box-shadow: 0 5px 10px #777;
+    box-shadow: 0 5px 10px #777;
+    border:1px solid rgb(15, 190, 94);
+}
 </style>

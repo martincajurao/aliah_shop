@@ -91,12 +91,13 @@
        fluid
       >
        <v-row align="center" justify="center">
+         <transition name="slide-fade">
            <router-view></router-view>
+         </transition>
        </v-row>
-      
-       
       </v-container>
     </v-main>
+   
     <v-btn
     v-scroll="onScroll"
     bottom
@@ -108,19 +109,69 @@
     @click="toTop"
     class="clickable"
     >
-<v-icon>mdi-chevron-up</v-icon>
+    <v-icon>mdi-chevron-up</v-icon>
     </v-btn>
+
     
+
+  <v-row justify="center">
+    <v-dialog
+      v-model="dialog"
+      fullscreen
+      hide-overlay
+      transition="dialog-bottom-transition"
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          v-scroll="onScroll"
+          bottom
+          color="success"
+          dark
+          v-on="on"
+          v-bind="attrs"
+          fab
+          fixed
+          right
+          @click="toTop"
+          style="bottom:11%"
+          >
+          <v-icon>mdi-cart</v-icon>
+        </v-btn>
+      </template>
+      <v-card>
+        <v-toolbar
+          dark
+          color="info"
+        >
+        <v-icon>mdi-cart</v-icon>
+          <v-toolbar-title> Purchase Product</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn
+            icon
+            dark
+            right
+            @click="dialog = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+          <Pos  />
+      </v-card>
+    </v-dialog>
+  </v-row>
+
   </v-app>
 </template>
 
 <script>
 //import * as auth from '../services/auth_service'
+import Pos from '@/views/Pos'
   export default {
     props: {
       source: String,
     },
     data: () => ({
+    dialog: false,
     drawer: null,
       mini: false,
       fab: false,
@@ -140,12 +191,12 @@
         {
           icon: 'mdi-chevron-up',
           'icon-alt': 'mdi-chevron-down',
-          'icon-ctr': 'mdi-google-maps',
-          text: 'Tracking',
+          'icon-ctr': 'mdi-account-group',
+          text: 'Users',
           model: false,
           children: [
-        { icon: 'mdi-tooltip-account', text: 'Locate', route:'/locate'},
-        { icon: 'mdi-printer', text: 'Print', route:'/print' },
+        { icon: 'mdi-account-multiple', text: 'Clients', route:'/clients'},
+        { icon: 'mdi-account-multiple-outline', text: 'Employee', route:'/employee' },
           ],
         },
         { icon: 'mdi-finance', text: 'Revenue', route:'/revenue' },
@@ -166,6 +217,9 @@
       logout() {
         
       }
+    },
+    components:{
+      Pos,
     }
     
   }
@@ -190,5 +244,13 @@ padding: 0;
   border-radius: 10px;
   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
 }
+.slide-fade-enter-active {
+  transition: all .4s ease;
+}
 
+.slide-fade-enter
+/* .slide-fade-leave-active below version 2.1.8 */ {
+  transform: translateX(150px);
+  opacity: 0;
+}
 </style>

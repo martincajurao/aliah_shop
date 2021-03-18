@@ -1,7 +1,7 @@
 
 <template>
   <v-layout>
-    <v-row class="mt-2">
+    <v-row class="">
       <v-col cols="12" md="12">
         <v-card  class="ml-5 mr-5">
           <v-app-bar
@@ -136,7 +136,8 @@
         <h3 class="py-3">Latest Transactions</h3>
         <v-data-table
           dense
-          items-per-page="7"
+          items-per-page="6"
+          fixed-header
           :headers="headers"
           :items="desserts"
           item-key="name"
@@ -238,7 +239,7 @@
           sortable: false,
           value: 'name',
         },
-        { text: 'Calories', value: 'calories' },
+        { text: 'Calories', value: 'calories'},
         { text: 'Fat (g)', value: 'fat' },
         { text: 'Carbs (g)', value: 'carbs' },
         { text: 'Protein (g)', value: 'protein' },
@@ -247,3 +248,6 @@
     }),
   }
 </script>
+<style scoped>
+  
+</style>
