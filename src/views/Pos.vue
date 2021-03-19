@@ -85,7 +85,7 @@
 import {apiGetAllProducts} from "@/api/product.api";
 
 export default {
-     data: () => ({
+    data: () => ({
        total:0,
        products:[],
        purchase:[],
@@ -99,6 +99,15 @@ export default {
     mounted () {
       this.initialize()
     },
+    // watch: {
+    //   'purchase.qty': {
+    //         handler: function (val) {
+    //             console.log(val)
+    //         },
+    //         deep: true
+    //     }
+
+    // },
     methods:{
        initialize () {
         apiGetAllProducts().then(({data}) => {
@@ -107,21 +116,29 @@ export default {
         })
       },
       addToPurchase(val){
-        let qty=1
-        this.purchase.push({
-          img : val.img,
-          name : val.name,
-          price : val.price,
-          qty : 1,
-          subtotal : (qty * val.price),
+        const isExist = this.productExists(val)
+        const index = this.purchase.findIndex(purchase => purchase.id===val.id);
+        if(isExist){
+          this.purchase[index].qty ++
+          this.purchase[index].subtotal = val.price * this.purchase[index].qty
+          this.computeTotal()
+        }else{
+          let qty=1
+          this.purchase.push({
+            id : val.id,
+            img : val.img,
+            name : val.name,
+            price : val.price,
+            qty : 1,
+            subtotal : (qty * val.price),
           })
-
-          this.computeTotal(val.price)
+        }
+          this.computeTotal()
       },
       increment(val){
         val.qty++
         val.subtotal = val.price * val.qty
-        this.computeTotal(val.subtotal)
+        this.computeTotal()
       },
       decrement(val){
         if(val.qty <= 1){
@@ -129,14 +146,30 @@ export default {
         }
         val.qty--
         val.subtotal = val.price * val.qty
-        this.computeTotal(val.subtotal)
+        this.computeTotal()
       },
       computeSubtoal(val){
         val.subtotal = val.price * val.qty
+        this.computeTotal()
       },
-      computeTotal(val){
-        this.total = this.total + val
-      }
+      computeTotal(){
+        this.total=0
+        this.purchase.forEach(element => {
+          this.total = this.total + (element.subtotal);
+        });
+        return this.total;
+      },
+      productExists(val) {
+      
+        return this.purchase.some(function(el) {
+          const isExist = el.id === val.id
+          
+          
+
+        return isExist;
+      }); 
+    }
+      
       
     }
 }
