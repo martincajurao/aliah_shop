@@ -5,15 +5,15 @@
              <v-col md="8" >
               <h3>Recent Purchase</h3>
                <v-row>
-                <v-card v-for="item in products" :key="item.id"  class="mx-2 my-4"  max-width="181">
+                <v-card v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
                   <v-img
-                  height="157"
+                  height="158"
                   :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"                  
                   :src="`http://127.0.0.1:8000/images/${item.img}`"
                   ></v-img>
                  <h4 class="ml-4 mt-2">{{item.name}}</h4> 
                 <div class="ml-4">
-                  $ {{item.price}}
+                   {{formatMoney(item.price)}}
                 </div>
                   <v-card-actions>
                     <v-btn @click="addToPurchase(item)" tile color="info" width="100%">
@@ -25,56 +25,127 @@
                </v-row>
              </v-col>
              <v-col md="4" >
-              <v-card style="height:77vh;" class="mt-11 px-3">
-                <v-simple-table>
-                  <template v-slot:default>
+              <v-card style="height:75vh;" class="mt-9 px-3">
+                <v-simple-table height="382">
                     <thead>
                       <tr>
                         <!-- <th class="text-left" style="width:50px;"></th> -->
-                        <th class="text-left pl-0">Product</th>
-                        <th class="text-right">Price</th>
-                        <th class="text-right">Qty</th>
-                        <th class="text-right">Subtotal</th>
+                        <th colspan="2" class="text-left pl-0">Product</th>
+                        <th class="text-right mx-0">Price</th>
+                        <th class="text-right mx-0">Qty</th>
+                        <th class="text-right mx-0">Subtotal</th>
                       </tr>
                     </thead>
                     <tbody style="height:60vh;">
-                      <tr
-                       class="ml-0 pl-0"
-                        v-for="item in purchase"
-                        :key="item.name"
-                      >
-                        <!-- <td class="pl-0" >
-                          <v-img
-                            height="33"
-                            width="33"
-                            :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"                  
-                            :src="`http://127.0.0.1:8000/images/${item.img}`"
-                            ></v-img>
-                             
-                        </td> -->
-                        <td class="text-left pl-0">{{ item.name }}</td>
-                        <td class="text-right">{{ item.price }}</td>
+                      <tr  class="ml-0 pl-0 " v-for="item in purchase" :key="item.name">
+                        <td colspan="2" class="text-left pl-0">{{ item.name }}</td>
+                        <td class="text-right">{{ formatMoney(item.price) }}</td>
                         <td class="text-right">
-                          <button @click="decrement(item)" class="py-0 px-1 btn btn-info" style="border: 1px solid #f2f2f2; background-color: #f2f2f2; ">-</button>
-                          <input @change="computeSubtoal(item)" style="width:20px; text-align:center; border: 1px solid #f2f2f2;" v-model="item.qty">
-                          <button @click="increment(item)" class="py-0 px-1" style="border: 1px solid #f2f2f2; background-color:#f2f2f2;">+</button>
+                          <div style="width:60px;">
+                            <button @click="decrement(item)" class="py-0 px-1 btn btn-info" style="border: 1px solid #f2f2f2; background-color: #f2f2f2; ">-</button>
+                            <input readonly @change="computeSubtoal(item)" style="width:20px; text-align:center; border: 1px solid #f2f2f2;" v-model="item.qty">
+                            <button @click="increment(item)" class="py-0 px-1" style="border: 1px solid #f2f2f2; background-color:#f2f2f2;">+</button>
+                          </div>
                         </td>
-                        <td class="text-right">{{ item.subtotal }}</td>
+                        <td class="text-right">{{ formatMoney(item.subtotal) }}</td>
                       </tr>
                     </tbody>
-                  </template>
+                 
                 </v-simple-table>
                 <div style="width:347px;">
-                  
-                  <span>Total Tax:</span>
-                  <h3 style="color:red">TOTAL: {{total}}</h3>
-                  <v-btn tile color="warning" width="100%">
-                    <v-icon>mdi-check</v-icon>
-                      continue
-                  </v-btn>
+                  <v-btn
+                  class="my-2 px-1 py-0 text-bold"
+                  outlined
+                  color="success"
+                  small
+                  @click="reset"
+                >
+                  reset
+                  <v-icon>mdi-cached</v-icon>
+                </v-btn>
+                  <hr>
+                  <div class="mt-2" >
+                    <span style="width:50%; display:inline-block">Total tax:</span>
+                    <span class="text-right" style="width:50%; display:inline-block">0.00</span>
+                  </div>
+                  <div class="mb-1" style="color:red; font-weight:bolder; font-size:24px;">
+                    <span style="width:50%; display:inline-block">TOTAL:</span>
+                    <span class="text-right " style="width:50%; display:inline-block">{{formatMoney(total)}}.00</span>
+                  </div>
+                    <v-dialog
+                      transition="dialog-bottom-transition"
+                      max-width="500"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-btn
+                          color="success"
+                          v-bind="attrs"
+                          v-on="on"
+                          style="width:100%;"
+                        >
+                        <v-icon class="mr-1">mdi-credit-card-check </v-icon>
+                          accept payment
+                        </v-btn>
+                      </template>
+                      <template v-slot:default="dialog">
+                        <v-card>
+                          <v-toolbar
+                            color="info"
+                            dark
+                          >Accept Payment</v-toolbar>
+                          <v-card-text class="pt-4">
+                            
+                          <v-form   ref="form" lazy-validation0 @submit.prevent="save" > 
+                            <v-card-text class="my-0 py-0">
+                              <v-container class="my-0 py-0">
+                                <v-row class="my-0 py-0">
+                                  <v-col cols="12" >
+                                    <v-text-field
+                                      label="Cash Amount"
+                                      placeholder="0"
+                                      prefix="₱"
+                                    ></v-text-field>
+                                    <h3>Client's information</h3>
+                                    <v-text-field
+                                      label="Name"
+                                      v-validate="'required'"  
+                                      :error-messages="errors.collect('Name')"
+                                      data-vv-name="Name"
+                                      hide-details="auto"
+                                    ></v-text-field>
+                                    <br>
+                                    <v-text-field
+                                      label="Phone #"
+                                      v-validate="'required|digits:11'"  
+                                      :error-messages="errors.collect('phone')"
+                                      data-vv-name="phone"
+                                    ></v-text-field>
+                                  </v-col>
+                                </v-row>
+                              </v-container>
+                            </v-card-text>
+                       
+                          </v-form>
+                          </v-card-text>
+                          <v-card-actions class="justify-end">
+                            <v-btn
+                              outlined
+                              @click="dialog.value = false"
+                              color="info"
+                            >Cancel</v-btn>
+                            <v-btn
+                              @click="save"
+                              color="info"
+                            ><v-icon>mdi-content-save</v-icon>save</v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </template>
+                    </v-dialog>
                 </div>
               </v-card>
              </v-col>
+             <v-col cols="auto">
+            </v-col>
           </v-row>
           <v-row>
           </v-row>
@@ -160,14 +231,17 @@ export default {
         return this.total;
       },
       productExists(val) {
-      
         return this.purchase.some(function(el) {
           const isExist = el.id === val.id
-          
-          
-
         return isExist;
       }); 
+    },
+    formatMoney(n) {
+    return "₱" + (Math.round(n * 100) / 100).toLocaleString();
+    },
+    reset(){
+      this.purchase=[]
+      this.total=0
     }
       
       
@@ -179,6 +253,15 @@ export default {
 
     background: rgb(129, 129, 129); 
     background-color: rgb(196, 192, 192); 
+}
+.slide-fade-enter-active {
+  transition: all .4s ease;
+}
+
+.slide-fade-enter
+/* .slide-fade-leave-active below version 2.1.8 */ {
+  transform: translateX(150px);
+  opacity: 0;
 }
 
 </style>
