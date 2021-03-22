@@ -1,11 +1,12 @@
 <template >
-    <div id="app" v-bind:style="{ backgroundColor: red}">
+    <div id="app" >
         <v-container style="background-color:white;">
-          <v-row align-content-sm>
+          <v-row >
              <v-col md="8" >
               <h3>Recent Purchase</h3>
+              
                <v-row>
-                <v-card v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
+                <v-card id="cards" v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
                   <v-img
                   height="158"
                   :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"                  
@@ -25,7 +26,7 @@
                </v-row>
              </v-col>
              <v-col md="4" >
-              <v-card style="height:75vh;" class="mt-9 px-3">
+              <v-card style="height:75vh;" class="mt-9 px-3 ">
                 <v-simple-table height="382">
                     <thead>
                       <tr>
@@ -68,7 +69,7 @@
                     <span style="width:50%; display:inline-block">Total tax:</span>
                     <span class="text-right" style="width:50%; display:inline-block">0.00</span>
                   </div>
-                  <div class="mb-1" style="color:red; font-weight:bolder; font-size:24px;">
+                  <div class="mb-1" style="font-weight:bolder; font-size:24px; color:red;">
                     <span style="width:50%; display:inline-block">TOTAL:</span>
                     <span class="text-right " style="width:50%; display:inline-block">{{formatMoney(total)}}.00</span>
                   </div>
@@ -100,14 +101,31 @@
                               <v-container class="my-0 py-0">
                                 <v-row class="my-0 py-0">
                                   <v-col cols="12" >
-                                    <v-text-field
+                                      <v-text-field
                                       label="Cash Amount"
                                       placeholder="0"
                                       prefix="₱"
+                                      color="success"
+                                      class="text-bold"
                                     ></v-text-field>
-                                    <h3>Client's information</h3>
+                                   
+                                    <transition name="slide-fade">
+                                      <div v-if="showSelectClient"  >
+                                        <h3 class="my-2">Select Customer</h3>
+                                        <model-select :options="options"
+                                          v-model="item"
+                                          placeholder="Search customer's name">
+                                        </model-select>
+                                        <v-card-actions class="justify-end">
+                                          <v-btn class="my-1" small right  color="error" @click="showSelectClient=false">close</v-btn>
+                                        </v-card-actions>
+                                      </div>
+                                    </transition>
+                                    <br>
+                                    <h3>Create Client's information</h3>
                                     <v-text-field
                                       label="Name"
+                                      v-model="item.text"
                                       v-validate="'required'"  
                                       :error-messages="errors.collect('Name')"
                                       data-vv-name="Name"
@@ -116,10 +134,20 @@
                                     <br>
                                     <v-text-field
                                       label="Phone #"
+                                      v-model="item.phone"
                                       v-validate="'required|digits:11'"  
                                       :error-messages="errors.collect('phone')"
                                       data-vv-name="phone"
                                     ></v-text-field>
+                                     <v-chip
+                                      class="mt-1"
+                                      color="success"
+                                      outlined
+                                      @click="showSelectClient=true"
+                                    >
+                                      <b>Customer already exist?</b>
+                                      
+                                    </v-chip>
                                   </v-col>
                                 </v-row>
                               </v-container>
@@ -154,36 +182,54 @@
 </template>
 <script>
 import {apiGetAllProducts} from "@/api/product.api";
+import {apiGetAllClients} from "@/api/client.api";
+import {apiCreateTransaction} from "@/api/transaction.api";
+import { ModelSelect } from 'vue-search-select'
+import 'vue-search-select/dist/VueSearchSelect.css'
 
 export default {
     data: () => ({
-       total:0,
-       products:[],
-       purchase:[],
+      snackbar:false,
+      showSelectClient:false,
+      total:0,
+      products:[],
+      purchase:[],
         headers: [
         // { text: "Image", value: "img", sortable: false },
         { text: 'Product', value: 'name' },
         { text: 'Qty', value: 1 },
         { text: 'Price', value: 'price' },
       ],
-     }),
+      options: [],
+        item: {
+          value: '',
+          name: '',
+          phone: '',
+          amount: '',
+          purchase:[],
+        },
+     
+    }),
     mounted () {
       this.initialize()
     },
-    // watch: {
-    //   'purchase.qty': {
-    //         handler: function (val) {
-    //             console.log(val)
-    //         },
-    //         deep: true
-    //     }
-
-    // },
+    watch:{
+      item(val){
+        val.amount = this.total
+        val.purchase = this.purchase
+        console.log(val)
+      }
+    },
     methods:{
        initialize () {
         apiGetAllProducts().then(({data}) => {
           this.products = data
-          console.log(data)
+          console.log(data,'products')
+        })
+        apiGetAllClients().then(({data}) => {
+          data = data.map(({ id, name, phone }) => ({ value: id, text: name, phone: phone }));
+          this.options = data
+          console.log(this.options,'options')
         })
       },
       addToPurchase(val){
@@ -242,10 +288,23 @@ export default {
     reset(){
       this.purchase=[]
       this.total=0
-    }
+    },
+    save(){
+      this.$validator.validateAll().then(result => {
+        if (result){
+          apiCreateTransaction(this.item).then(() => {
+            this.snackbar=true
+            this.close()
+            this.initialize()
+          })
+        }
+      });
+    }   
       
-      
-    }
+  },
+  components: {
+    ModelSelect
+  }
 }
 </script>
 <style scoped>
@@ -262,6 +321,13 @@ export default {
 /* .slide-fade-leave-active below version 2.1.8 */ {
   transform: translateX(150px);
   opacity: 0;
+}
+#cards{
+   transition: all .3s ease; 
+}
+#cards:hover{
+   transition: all .3s ease;
+   transform: translateY(-5px);
 }
 
 </style>

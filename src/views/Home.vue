@@ -136,7 +136,7 @@
         <h3 class="py-3">Latest Transactions</h3>
         <v-data-table
           dense
-          items-per-page="6"
+          
           fixed-header
           :headers="headers"
           :items="desserts"
