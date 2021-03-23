@@ -12,12 +12,20 @@
                   :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"                  
                   :src="`http://127.0.0.1:8000/images/${item.img}`"
                   ></v-img>
-                 <h4 class="ml-4 mt-2">{{item.name}}</h4> 
-                <div class="ml-4">
-                   {{formatMoney(item.price)}}
+                 <h4 class="ml-3 mt-2">{{item.name}}</h4> 
+                <div class="px-3">
+                  <div style="width:50%; display:inline-block;">{{formatMoney(item.price)}}</div>
+                  <div v-if="item.stocks > 5" style="color: green; width:50%; display:inline-block; text-align:right; font-size:12px;">Available: {{item.stocks}}</div>
+                  <div v-else style="color: red; width:50%; display:inline-block; text-align:right; font-size:12px;">Available: {{item.stocks}}</div>
                 </div>
-                  <v-card-actions>
+                  <v-card-actions v-if="item.stocks > 0">
                     <v-btn @click="addToPurchase(item)" tile color="info" width="100%">
+                    <v-icon>mdi-cart-arrow-right</v-icon>
+                      buy
+                    </v-btn>
+                  </v-card-actions>
+                  <v-card-actions v-else>
+                    <v-btn disabled @click="addToPurchase(item)" tile color="info" width="100%">
                     <v-icon>mdi-cart-arrow-right</v-icon>
                       buy
                     </v-btn>
@@ -101,12 +109,20 @@
                               <v-container class="my-0 py-0">
                                 <v-row class="my-0 py-0">
                                   <v-col cols="12" >
+                                    <h3>Amount</h3>
                                       <v-text-field
-                                      label="Cash Amount"
-                                      placeholder="0"
+                                      placeholder="0.00"
                                       prefix="₱"
-                                      color="success"
-                                      class="text-bold"
+                                      class="mt-2"
+                                      label="Cash Amount"
+                                      autofocus
+                                      required
+                                      v-validate="`required|integer|min_value:${total}`"  
+                                      :error-messages="errors.collect('Amount')"
+                                      data-vv-name="Amount"
+                                      style=" font-size:30px;"
+                                      v-model="cash"
+                                      :loading="loader"
                                     ></v-text-field>
                                    
                                     <transition name="slide-fade">
@@ -117,7 +133,7 @@
                                           placeholder="Search customer's name">
                                         </model-select>
                                         <v-card-actions class="justify-end">
-                                          <v-btn class="my-1" small right  color="error" @click="showSelectClient=false">close</v-btn>
+                                          <v-btn class="my-1" small right  color="primary" @click="justCreateNew">Just Create New</v-btn>
                                         </v-card-actions>
                                       </div>
                                     </transition>
@@ -130,6 +146,7 @@
                                       :error-messages="errors.collect('Name')"
                                       data-vv-name="Name"
                                       hide-details="auto"
+                                      :loading="loader"
                                     ></v-text-field>
                                     <br>
                                     <v-text-field
@@ -138,6 +155,7 @@
                                       v-validate="'required|digits:11'"  
                                       :error-messages="errors.collect('phone')"
                                       data-vv-name="phone"
+                                      :loading="loader"
                                     ></v-text-field>
                                      <v-chip
                                       class="mt-1"
@@ -152,11 +170,11 @@
                                 </v-row>
                               </v-container>
                             </v-card-text>
-                       
                           </v-form>
                           </v-card-text>
                           <v-card-actions class="justify-end">
                             <v-btn
+                              ref="closeDialog"
                               outlined
                               @click="dialog.value = false"
                               color="info"
@@ -164,6 +182,7 @@
                             <v-btn
                               @click="save"
                               color="info"
+                              :loading="loader"
                             ><v-icon>mdi-content-save</v-icon>save</v-btn>
                           </v-card-actions>
                         </v-card>
@@ -178,6 +197,23 @@
           <v-row>
           </v-row>
         </v-container>
+        <v-snackbar
+          v-model="snackbar"
+          color="green darken-3"
+          width="500px"
+          class="px-5"
+        >
+          {{ text }}
+          <template v-slot:action="{ attrs }">
+            <v-btn
+              text
+              v-bind="attrs"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
     </div>
 </template>
 <script>
@@ -189,9 +225,13 @@ import 'vue-search-select/dist/VueSearchSelect.css'
 
 export default {
     data: () => ({
+      loader:false,
+      text:'',
+      isNewClient:true,
       snackbar:false,
       showSelectClient:false,
       total:0,
+      cash:null,
       products:[],
       purchase:[],
         headers: [
@@ -290,16 +330,37 @@ export default {
       this.total=0
     },
     save(){
+  
       this.$validator.validateAll().then(result => {
         if (result){
+          this.loader=true
+          this.item.cash = parseInt(this.cash)
           apiCreateTransaction(this.item).then(() => {
+            this.$refs.closeDialog.$el.click()
             this.snackbar=true
-            this.close()
+            this.showSelectClient=false,
+            this.cash='',
+            this.justCreateNew()
+            this.reset()
+            this.text ="Transaction Successfully saved!"
             this.initialize()
+          }).finally(data =>{
+            this.loader=false
+            console.log(data)
           })
         }
       });
-    }   
+    },
+    justCreateNew(){
+      this.showSelectClient=false,
+      this.item = {
+          value: '',
+          name: '',
+          phone: '',
+          amount: '',
+          purchase:[],
+        }
+    }
       
   },
   components: {

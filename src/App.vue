@@ -81,7 +81,7 @@
         <span class="hidden-sm-and-down">Inventory System</span>
       </v-toolbar-title>
       <v-spacer />
-      <v-btn icon v-on:click="logout"  class="clickable">
+      <v-btn icon   class="clickable">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
@@ -123,7 +123,6 @@
     >
       <template v-slot:activator="{ on, attrs }">
         <v-btn
-          v-scroll="onScroll"
           bottom
           color="success"
           dark
@@ -132,7 +131,7 @@
           fab
           fixed
           right
-          @click="toTop"
+          @click="triggerInit"
           style="bottom:11%"
           >
           <v-icon>mdi-cart</v-icon>
@@ -155,7 +154,7 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
-          <Pos  />
+          <Pos ref="init"  />
       </v-card>
     </v-dialog>
   </v-row>
@@ -214,8 +213,8 @@ import Pos from '@/views/Pos'
       toTop () {
         this.$vuetify.goTo(0)
       },
-      logout() {
-        
+      triggerInit() {
+        this.$refs.init.initialize()
       }
     },
     components:{
