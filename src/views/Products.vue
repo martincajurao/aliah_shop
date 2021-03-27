@@ -256,7 +256,7 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
         apiGetAllProducts().then(({data}) => {
           this.desserts = data
           this.tblLoader=false
-          this.uploadImage(data.img)
+          // this.uploadImage(data.img)
           console.log(data)
         })
         apiGetAllCategory().then(({data}) =>{

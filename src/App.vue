@@ -92,7 +92,7 @@
       >
        <v-row align="center" justify="center">
          <transition name="slide-fade">
-           <router-view></router-view>
+           <router-view ></router-view>
          </transition>
        </v-row>
       </v-container>
@@ -111,9 +111,6 @@
     >
     <v-icon>mdi-chevron-up</v-icon>
     </v-btn>
-
-    
-
   <v-row justify="center">
     <v-dialog
       v-model="dialog"
@@ -203,8 +200,11 @@ import Pos from '@/views/Pos'
         { icon: 'mdi-magnify', text: 'Search', route:'/recherches' },
       ],
     }),
-
+  
+    mounted(){
+    },
     methods: {
+
       onScroll (e) {
         if (typeof window === 'undefined') return
         const top = window.pageYOffset || e.target.scrollTop || 0

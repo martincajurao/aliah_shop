@@ -5,11 +5,15 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    flavor: ''
+  },
+  getters: {
+    flavor: state => state.flavor
   },
   mutations: {
+    change(state, flavor) {
+      state.flavor = flavor
+    }
   },
-  actions: {
-  },
-  modules: {
-  }
+
 })

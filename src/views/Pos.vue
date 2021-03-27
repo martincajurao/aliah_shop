@@ -3,9 +3,23 @@
         <v-container style="background-color:white;">
           <v-row >
              <v-col md="8" >
-              <h3>Recent Purchase</h3>
               
+              <div style="width:20%; display:inline-block;"><h3>Recent Purchase </h3></div>
+              <div style="width:80%; display:inline-block;">
+                <v-text-field
+                v-model="search"
+                prepend-inner-icon="mdi-magnify"
+                label="Search"
+                solo
+                flat
+                dense
+                @input="searchProduct"
+                class="my-0 py-0"
+                style="position:absolute; top:11%; width:46%;"
+              ></v-text-field>
+              </div>
                <v-row>
+                
                 <v-card id="cards" v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
                   <v-img
                   height="158"
@@ -52,8 +66,8 @@
                         <td class="text-right">
                           <div style="width:60px;">
                             <button @click="decrement(item)" class="py-0 px-1 btn btn-info" style="border: 1px solid #f2f2f2; background-color: #f2f2f2; ">-</button>
-                            <input readonly @change="computeSubtoal(item)" style="width:20px; text-align:center; border: 1px solid #f2f2f2;" v-model="item.qty">
-                            <button @click="increment(item)" class="py-0 px-1" style="border: 1px solid #f2f2f2; background-color:#f2f2f2;">+</button>
+                            <input  @change="computeSubtoal(item)" readonly style="width:20px; text-align:center; border: 1px solid #f2f2f2;" v-model="item.qty">
+                            <button @click="addToPurchase(item)" class="py-0 px-1" style="border: 1px solid #f2f2f2; background-color:#f2f2f2;">+</button>
                           </div>
                         </td>
                         <td class="text-right">{{ formatMoney(item.subtotal) }}</td>
@@ -81,21 +95,20 @@
                     <span style="width:50%; display:inline-block">TOTAL:</span>
                     <span class="text-right " style="width:50%; display:inline-block">{{formatMoney(total)}}.00</span>
                   </div>
+                    <v-btn
+                      color="success"
+                      @click="checkPaymentDialog"
+                      style="width:100%;"
+                    >
+                    <v-icon class="mr-1">mdi-credit-card-check </v-icon>
+                      accept payment
+                    </v-btn>
                     <v-dialog
                       transition="dialog-bottom-transition"
                       max-width="500"
+                      v-model="paymentDialog"
+                      :loading="loader"
                     >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-btn
-                          color="success"
-                          v-bind="attrs"
-                          v-on="on"
-                          style="width:100%;"
-                        >
-                        <v-icon class="mr-1">mdi-credit-card-check </v-icon>
-                          accept payment
-                        </v-btn>
-                      </template>
                       <template v-slot:default="dialog">
                         <v-card>
                           <v-toolbar
@@ -153,8 +166,8 @@
                                       label="Phone #"
                                       v-model="item.phone"
                                       v-validate="'required|digits:11'"  
-                                      :error-messages="errors.collect('phone')"
-                                      data-vv-name="phone"
+                                      :error-messages="errors.collect('Phone')"
+                                      data-vv-name="Phone"
                                       :loading="loader"
                                     ></v-text-field>
                                      <v-chip
@@ -182,7 +195,9 @@
                             <v-btn
                               @click="save"
                               color="info"
+                              :disabled="loader"
                               :loading="loader"
+                              class="white--text"
                             ><v-icon>mdi-content-save</v-icon>save</v-btn>
                           </v-card-actions>
                         </v-card>
@@ -197,6 +212,8 @@
           <v-row>
           </v-row>
         </v-container>
+
+        <!-- Sanckbar -->
         <v-snackbar
           v-model="snackbar"
           color="green darken-3"
@@ -214,23 +231,77 @@
             </v-btn>
           </template>
         </v-snackbar>
+
+        <!-- change dilaog -->
+        <v-row justify="center">
+          <v-dialog
+            v-model="dialogx"
+            max-width="250"
+          >
+            <v-card>
+              <v-card-title class="headline">
+                Your change is: <span class="pl-2" style="color:green">{{formatMoney(change)}}.00</span>
+              </v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="green darken-1"
+                  text
+                  @click="dialogx = false"
+                >
+                  Ok
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-row>
+
+        <!-- loading dialog -->
+        <div class="text-center">
+        <v-dialog
+          v-model="loader"
+          hide-overlay
+          persistent
+          width="300"
+        >
+          <v-card
+            color="success"
+            dark
+          >
+            <v-card-text>
+              Saving record...
+              <v-progress-linear
+                indeterminate
+                color="white"
+                class="mb-0"
+              ></v-progress-linear>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+      </div>
     </div>
 </template>
 <script>
-import {apiGetAllProducts} from "@/api/product.api";
+import {apiGetAllProducts,apiSearchProduct} from "@/api/product.api";
 import {apiGetAllClients} from "@/api/client.api";
 import {apiCreateTransaction} from "@/api/transaction.api";
 import { ModelSelect } from 'vue-search-select'
 import 'vue-search-select/dist/VueSearchSelect.css'
+import FormatHelper from "@/mixins/FormatHelper"
 
 export default {
+    mixins:[FormatHelper],
     data: () => ({
+      search:'',
+      dialogx: false,
       loader:false,
+      paymentDialog:false,
       text:'',
       isNewClient:true,
       snackbar:false,
       showSelectClient:false,
       total:0,
+      change:0,
       cash:null,
       products:[],
       purchase:[],
@@ -252,13 +323,13 @@ export default {
     }),
     mounted () {
       this.initialize()
+      console.log(this.$store.getters)
     },
     watch:{
       item(val){
         val.amount = this.total
         val.purchase = this.purchase
-        console.log(val)
-      }
+      },
     },
     methods:{
        initialize () {
@@ -273,13 +344,19 @@ export default {
         })
       },
       addToPurchase(val){
+        console.log(val)
         const isExist = this.productExists(val)
         const index = this.purchase.findIndex(purchase => purchase.id===val.id);
         if(isExist){
+          if( this.purchase[index].qty >= val.stocks){
+            return
+          }
+         
           this.purchase[index].qty ++
           this.purchase[index].subtotal = val.price * this.purchase[index].qty
           this.computeTotal()
         }else{
+        
           let qty=1
           this.purchase.push({
             id : val.id,
@@ -287,16 +364,13 @@ export default {
             name : val.name,
             price : val.price,
             qty : 1,
+            stocks : val.stocks,
             subtotal : (qty * val.price),
           })
         }
           this.computeTotal()
       },
-      increment(val){
-        val.qty++
-        val.subtotal = val.price * val.qty
-        this.computeTotal()
-      },
+      
       decrement(val){
         if(val.qty <= 1){
           this.purchase.splice(this.purchase.indexOf(val), 1)
@@ -320,47 +394,59 @@ export default {
         return this.purchase.some(function(el) {
           const isExist = el.id === val.id
         return isExist;
-      }); 
-    },
-    formatMoney(n) {
-    return "₱" + (Math.round(n * 100) / 100).toLocaleString();
-    },
-    reset(){
-      this.purchase=[]
-      this.total=0
-    },
-    save(){
-  
-      this.$validator.validateAll().then(result => {
-        if (result){
-          this.loader=true
-          this.item.cash = parseInt(this.cash)
-          apiCreateTransaction(this.item).then(() => {
-            this.$refs.closeDialog.$el.click()
-            this.snackbar=true
-            this.showSelectClient=false,
-            this.cash='',
-            this.justCreateNew()
-            this.reset()
-            this.text ="Transaction Successfully saved!"
-            this.initialize()
-          }).finally(data =>{
-            this.loader=false
-            console.log(data)
-          })
+        }); 
+      },
+      
+      reset(){
+        this.purchase=[]
+        this.total=0
+      },
+      save(){
+        this.$validator.validateAll().then(result => {
+          if (result){
+            this.paymentDialog=false
+            this.loader=true
+            this.item.cash = parseInt(this.cash)
+            this.change = this.cash - this.total
+            apiCreateTransaction(this.item).then(() => {
+              this.snackbar=true
+              this.showSelectClient=false,
+              this.reset()
+              this.text ="Transaction Successfully saved!"
+              this.initialize()
+              this.dialogx = true
+              this.$refs.form.reset()
+              this.$store.commit('change', 'triggered')
+            }).finally(data =>{
+              this.loader=false
+              console.log(data)
+            })
+          }
+        });
+      },
+      searchProduct(){
+       
+        apiSearchProduct(this.search).then(({data})=>{
+          this.products = data
+          console.log(data)
+        })
+      },
+      justCreateNew(){
+        this.showSelectClient=false,
+        this.item = {
+            value: '',
+            name: '',
+            phone: '',
+            amount: '',
+            purchase:[],
+          }
+      },
+      checkPaymentDialog(){
+         
+        if (this.total>0) {
+          this.paymentDialog = true
         }
-      });
-    },
-    justCreateNew(){
-      this.showSelectClient=false,
-      this.item = {
-          value: '',
-          name: '',
-          phone: '',
-          amount: '',
-          purchase:[],
-        }
-    }
+      },
       
   },
   components: {

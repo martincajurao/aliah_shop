@@ -1,253 +1,262 @@
 
 <template>
   <v-layout>
-    <v-row class="">
-      <v-col cols="12" md="12">
-        <v-card  class="ml-5 mr-5">
-          <v-app-bar
-          dark
-          color="#2C3A47"
-          >
-          <v-btn icon>
-            <v-icon>mdi-home</v-icon>
-          </v-btn>
-          <v-toolbar-title>Dashboard</v-toolbar-title>
-          </v-app-bar>
-        <v-container>
-          <v-row>
-            <v-col cols="12" sm="4">
-              <v-hover
-        v-slot:default="{ hover }"
-        open-delay="200"
-      >
-       <v-card
-       :elevation="hover ? 16 : 2"
-        class="mx-auto"
-        max-width="344"
-        outlined
-
+    <v-row row wrap>
+       <v-btn
+      class="mx-2"
+      fab
+      dark
+      small
+      @click="refreshpage"
+      color="success"
     >
-    <v-list-item three-line color="success">
-      <v-list-item-content>
-        <v-list-item-title class="headline mb-1">Products</v-list-item-title>
+      <v-icon dark>
+        mdi-refresh
+      </v-icon>
+    </v-btn>
+      <v-container style="max-height: 280px; overflow-y: hidden;" grid-list-md class='content ml-3 mr-2 '>
+        <v-layout row wrap>
+            <v-flex  xs6>
+                <apexchart  height="270" width="100%" :options="salesOption" :series="series"></apexchart>
+            </v-flex>
+            <v-flex  xs6 class="">
+                <apexchart type="bar" height="250"  width="93%" :options="InvoiceChartOptions" :series="invoiceSeries"></apexchart>
+            </v-flex>
+        </v-layout>
+      </v-container>
 
-      </v-list-item-content>
+      <v-col cols="10" sm="12" >
+        <v-card class="pb-0 ml-4" style="width:97%; margin-bottom:0px; ">
+            <h3 class="py-3">Latest Transactions</h3>
+            <v-text-field
+              v-model="search"
+              prepend-inner-icon="mdi-magnify"
+              label="Search"
+              solo
+              flat
+              dense
+              @input="searchProduct"
+              class="my-0 py-0"
+              style="position:absolute; top:1.5%; left:17%; width:46%;"
+            ></v-text-field>
+            <v-data-table
+              dense
+              :items-per-page="itemsPerPage"
+              :headers="headers"
+              :items="transactions"
+              item-key="name"
+              style="font-size:12px;"
+            >
+            <template v-slot:item.created_at="{ item }">
+              {{ format_date(item.created_at) }}
+            </template>
+            <template v-slot:item.amount="{ item }">
+              {{ formatMoney(item.amount) }}
+            </template>
 
-      <v-list-item-avatar
-        tile
-        size="80"
-       color="red darken-2"
-      >
-        <v-icon dark>fas fa-box-open</v-icon>
-      </v-list-item-avatar>
-    </v-list-item>
-    <v-divider></v-divider>
-    <v-card-actions>
-      <v-icon flab color="red darken-2">local_offer</v-icon>
-      <v-btn text>40,664</v-btn>
-      <v-spacer></v-spacer>
-      <v-icon flab color="#2C3A47">mdi-chevron-right</v-icon>
-    </v-card-actions>
-  </v-card>
-      </v-hover>
-          </v-col>
-          <v-col cols="12" sm="4">
-        <v-hover
-        v-slot:default="{ hover }"
-        open-delay="200"
-      >
-       <v-card
-       :elevation="hover ? 16 : 2"
-        class="mx-auto"
-        max-width="344"
-        outlined
+            <template v-slot:item.client="{ item }">
+              <v-row class="pa-0 ma-0">
+                <v-col md="2" class="pa-0 ma-0">
+                  <img
+                    width="35px"
+                    height="35px"
+                    class="ma-0 mt-1"
+                    :style="{
+                      backgroundSize: 'cover', 
+                      backgroundPosition: 'center',
+                      border: '2px solid #D3D3D3', 
+                      borderRadius: '50px', 
+                      padding: '1px', 
+                      backgroundPosition: 'center' 
+                      }"
+                    :src="`http://127.0.0.1:8000/avatar/${item.client.img}`"
+                    >
+                </v-col>
+                <v-col md="6" class="mx-0 pl-1">
+                  <b>{{ item.client.name }}</b>
+                </v-col>
+              </v-row>
+            </template>
 
-      >
-    <v-list-item three-line>
-      <v-list-item-content>
-        <v-list-item-title class="headline mb-1">Revenue</v-list-item-title>
-
-      </v-list-item-content>
-
-      <v-list-item-avatar
-        tile
-        size="80"
-       color="#009432"
-      >
-        <v-icon dark>mdi-currency-usd-off</v-icon>
-      </v-list-item-avatar>
-    </v-list-item>
-    <v-divider></v-divider>
-    <v-card-actions>
-      <v-icon flab color="#009432">directions_walk</v-icon>
-      <v-btn text>40,664</v-btn>
-      <v-spacer></v-spacer>
-      <v-icon flab color="#2C3A47">mdi-chevron-right</v-icon>
-
-    </v-card-actions>
-  </v-card>
-      </v-hover>
-
-            </v-col>
-             <v-col cols="12" sm="4">
-              <v-hover
-        v-slot:default="{ hover }"
-        open-delay="200"
-      >
-       <v-card
-       :elevation="hover ? 16 : 2"
-        class="mx-auto"
-        max-width="344"
-        outlined
-
-  >
-    <v-list-item three-line>
-      <v-list-item-content>
-        <v-list-item-title class="headline mb-1">Orders</v-list-item-title>
-
-      </v-list-item-content>
-
-      <v-list-item-avatar
-        tile
-        size="80"
-       color="#F79F1F"
-      >
-        <v-icon dark>fas fa-user</v-icon>
-      </v-list-item-avatar>
-    </v-list-item>
-    <v-divider></v-divider>
-    <v-card-actions>
-      <v-icon flab color="#F79F1F">description</v-icon>
-      <v-btn text>300k</v-btn>
-      <v-spacer></v-spacer>
-      <v-icon flab color="#2C3A47">mdi-chevron-right</v-icon>
-
-    </v-card-actions>
-  </v-card>
-      </v-hover>
-
-            </v-col>
-          </v-row>
-        </v-container>
+            <template v-slot:item.actions="{ item }">
+              
+              <v-icon  class="mr-2 primary--text" @click="editItem(item)">
+                mdi-printer
+              </v-icon>
+              <v-icon  @click="deleteItem(item)" class=" primary--text">
+                mdi-file-download
+              </v-icon>
+            </template>
+            </v-data-table>
         </v-card>
-      </v-col>
-      <v-col cols="10" sm="12">
-    <v-card class="px-4">
-        <h3 class="py-3">Latest Transactions</h3>
-        <v-data-table
-          dense
-          
-          fixed-header
-          :headers="headers"
-          :items="desserts"
-          item-key="name"
-        ></v-data-table>
-    </v-card>
       </v-col>
     </v-row>
   </v-layout>
 </template>
 
 <script>
+
+import {apiGetAllTransactions, apiSearchTransaction } from "@/api/transaction.api";
+import {getChartData } from "@/api/chart.api";
+import FormatHelper from "@/mixins/FormatHelper"
+
   export default {
+    mixins:[FormatHelper],
     data: () => ({
-      desserts: [
-        {
-          name: 'Frozen Yogurt',
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-          iron: '1%',
-        },
-        {
-          name: 'Ice cream sandwich',
-          calories: 237,
-          fat: 9.0,
-          carbs: 37,
-          protein: 4.3,
-          iron: '1%',
-        },
-        {
-          name: 'Eclair',
-          calories: 262,
-          fat: 16.0,
-          carbs: 23,
-          protein: 6.0,
-          iron: '7%',
-        },
-        {
-          name: 'Cupcake',
-          calories: 305,
-          fat: 3.7,
-          carbs: 67,
-          protein: 4.3,
-          iron: '8%',
-        },
-        {
-          name: 'Gingerbread',
-          calories: 356,
-          fat: 16.0,
-          carbs: 49,
-          protein: 3.9,
-          iron: '16%',
-        },
-        {
-          name: 'Jelly bean',
-          calories: 375,
-          fat: 0.0,
-          carbs: 94,
-          protein: 0.0,
-          iron: '0%',
-        },
-        {
-          name: 'Lollipop',
-          calories: 392,
-          fat: 0.2,
-          carbs: 98,
-          protein: 0,
-          iron: '2%',
-        },
-        {
-          name: 'Honeycomb',
-          calories: 408,
-          fat: 3.2,
-          carbs: 87,
-          protein: 6.5,
-          iron: '45%',
-        },
-        {
-          name: 'Donut',
-          calories: 452,
-          fat: 25.0,
-          carbs: 51,
-          protein: 4.9,
-          iron: '22%',
-        },
-        {
-          name: 'KitKat',
-          calories: 518,
-          fat: 26.0,
-          carbs: 65,
-          protein: 7,
-          iron: '6%',
-        },
-      ],
+      itemsPerPage: 5,
+      search:'',
+      transactions: [],
       headers: [
-        {
-          text: 'Dessert (100g serving)',
-          sortable: false,
-          value: 'name',
-        },
-        { text: 'Calories', value: 'calories'},
-        { text: 'Fat (g)', value: 'fat' },
-        { text: 'Carbs (g)', value: 'carbs' },
-        { text: 'Protein (g)', value: 'protein' },
-        { text: 'Iron (%)', value: 'iron' },
+        { text: 'Customer',sortable: false, value: 'client', },
+        { text: 'Invoice #',sortable: false, value: 'invoice_no',},
+        { text: 'Phone #', sortable: false, value: 'client.phone' },
+        { text: 'Amount', sortable: false, value: 'amount' },
+        { text: 'Created at', sortable: false, value: 'created_at' },
+        { text: 'Actions',sortable: false, value: 'actions' },
       ],
+
+      invoiceSeries: [
+                {
+                    name: 'Paid',
+                    data: [280]
+                }, 
+                {
+                    name: 'Total',
+                    data: [100]
+                }, 
+                {
+                    name: 'Partially Paid',
+                    data: [320]
+                },
+                {
+                    name: 'Unpaid',
+                    data: [150]
+                }
+            ],
+            InvoiceChartOptions: {
+                chart: 
+                {
+                    type: 'bar',
+                    height: 280
+                },
+                plotOptions: 
+                {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        endingShape: 'rounded'
+                    },
+                },
+                dataLabels: 
+                {
+                    enabled: true
+                },
+                stroke: 
+                {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: 
+                {
+                    categories: ['2021'],
+                },
+                yaxis: 
+                {
+                    title: {
+                        text: 'Invoice Count'
+                    }
+                },
+                fill: 
+                {
+                    opacity: 1
+                },
+                
+            },
+
+
+        series: [{
+          name: 'sales',
+          data: []
+        }],
+        salesOption:{
+          chart: {
+            type: 'area',
+            stacked: false,
+            zoom: {
+              type: 'x',
+              enabled: true,
+              autoScaleYaxis: true
+            },
+            toolbar: {
+              tools: {
+                download: true,
+                selection: false,
+                zoom: false,
+                zoomin: true,
+                zoomout: true,
+                pan: true,
+                reset: false | '<img src="/static/icons/reset.png" width="20">',
+                customIcons: []
+              },
+            },
+          },
+          xaxis: {
+            type: 'datetime',
+            tickAmount: 4,
+          },
+          yaxis: {
+            title: {
+                text: 'Sales Amount'
+            }
+          },
+          dataLabels: {
+              enabled: false
+          },
+          title: {
+            text: 'Sales Graph',
+            align: 'left'
+          },
+        },
+        
+        
     }),
+
+    mounted(){
+      this.initialize()
+      
+    },
+    computed: {
+      trigger() {
+        return this.$store.getters.flavor
+      }
+    },
+    watch:{
+      trigger() {
+        this.initialize()
+      }
+    },
+    methods:{
+      refreshpage(){
+        window.location.reload()
+      },
+      initialize () {
+        getChartData().then(({data}) => {
+            const map1 = data.map(function (arr) { return [arr.date, arr.sales]})
+            this.series[0].data = map1
+            // console.log(this.series[0].data,'depota')
+        })
+         apiGetAllTransactions().then(({data}) => {
+            this.transactions = data
+        })
+      },
+      searchProduct(){
+       
+        apiSearchTransaction(this.search).then(({data})=>{
+          this.transactions = data
+        })
+      },
+    },
   }
 </script>
-<style scoped>
-  
-</style>
+
