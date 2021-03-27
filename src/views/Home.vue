@@ -1,19 +1,8 @@
 
 <template>
+<div>
   <v-layout>
     <v-row row wrap>
-       <v-btn
-      class="mx-2"
-      fab
-      dark
-      small
-      @click="refreshpage"
-      color="success"
-    >
-      <v-icon dark>
-        mdi-refresh
-      </v-icon>
-    </v-btn>
       <v-container style="max-height: 280px; overflow-y: hidden;" grid-list-md class='content ml-3 mr-2 '>
         <v-layout row wrap>
             <v-flex  xs6>
@@ -24,7 +13,6 @@
             </v-flex>
         </v-layout>
       </v-container>
-
       <v-col cols="10" sm="12" >
         <v-card class="pb-0 ml-4" style="width:97%; margin-bottom:0px; ">
             <h3 class="py-3">Latest Transactions</h3>
@@ -80,10 +68,10 @@
 
             <template v-slot:item.actions="{ item }">
               
-              <v-icon  class="mr-2 primary--text" @click="editItem(item)">
+              <v-icon  class="mr-2 primary--text" @click="print(item)">
                 mdi-printer
               </v-icon>
-              <v-icon  @click="deleteItem(item)" class=" primary--text">
+              <v-icon  @click="exportPdf(item)" class=" primary--text">
                 mdi-file-download
               </v-icon>
             </template>
@@ -92,17 +80,27 @@
       </v-col>
     </v-row>
   </v-layout>
+  <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
+  </div>
 </template>
 
 <script>
 
-import {apiGetAllTransactions, apiSearchTransaction } from "@/api/transaction.api";
+import {
+  apiGetAllTransactions, 
+  apiSearchTransaction, 
+  apiGenerateRecieptPdf, 
+  apiPrintReciept
+} from "@/api/transaction.api";
 import {getChartData } from "@/api/chart.api";
 import FormatHelper from "@/mixins/FormatHelper"
+import PdfPreview from '@/components/features/PrintPreviewPdf'
 
   export default {
     mixins:[FormatHelper],
     data: () => ({
+      previewDialogStatus: false,
+      filename:'',
       itemsPerPage: 5,
       search:'',
       transactions: [],
@@ -224,7 +222,6 @@ import FormatHelper from "@/mixins/FormatHelper"
 
     mounted(){
       this.initialize()
-      
     },
     computed: {
       trigger() {
@@ -241,6 +238,7 @@ import FormatHelper from "@/mixins/FormatHelper"
         window.location.reload()
       },
       initialize () {
+        this.previewDialogStatus=false
         getChartData().then(({data}) => {
             const map1 = data.map(function (arr) { return [arr.date, arr.sales]})
             this.series[0].data = map1
@@ -251,12 +249,46 @@ import FormatHelper from "@/mixins/FormatHelper"
         })
       },
       searchProduct(){
-       
         apiSearchTransaction(this.search).then(({data})=>{
           this.transactions = data
         })
       },
+      
+      exportPdf(item) {
+        apiGenerateRecieptPdf({id:item.id}).then(response => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'reciept.pdf');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            this.errorMessage = ''
+        }).catch(data=>{
+            this.errorMessage = 'Something went wrong while generating PDF file!.'
+            console.log(data)
+        }).finally(data=>{
+            console.log(data)
+        })
+      },
+      print(item){
+        apiPrintReciept(({id:item.id})).then(response => {
+            this.filename = 'preview.pdf'
+            this.previewDialogStatus=true
+            this.errorMessage = ''
+            console.log(response)
+        }).catch(data=>{
+            console.log(data)
+        }).finally(data=>{
+            console.log(data)
+        })
+      }
+    
+
     },
+    components:{
+     PdfPreview,
+    }
   }
 </script>
 
