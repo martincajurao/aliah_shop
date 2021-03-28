@@ -7,16 +7,28 @@
               <div style="width:20%; display:inline-block;"><h3>Recent Purchase </h3></div>
               <div style="width:80%; display:inline-block;">
                 <v-text-field
+                v-model="barcode"
+                prepend-inner-icon="mdi-barcode"
+                label="barcode Reader"
+                solo
+                flat
+                autofocus
+                dense
+                @input="searchProduct"
+                class="my-0 py-0"
+                style="position:absolute; top:11%; right:15%; width:20%;"
+                ></v-text-field>
+                <v-text-field
                 v-model="search"
                 prepend-inner-icon="mdi-magnify"
-                label="Search"
+                label="Search Product"
                 solo
                 flat
                 dense
                 @input="searchProduct"
                 class="my-0 py-0"
                 style="position:absolute; top:11%; width:46%;"
-              ></v-text-field>
+                ></v-text-field>
               </div>
                <v-row>
                 
@@ -292,6 +304,7 @@ import FormatHelper from "@/mixins/FormatHelper"
 export default {
     mixins:[FormatHelper],
     data: () => ({
+      barcode:'',
       search:'',
       dialogx: false,
       loader:false,

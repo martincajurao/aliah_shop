@@ -66,9 +66,18 @@
     
       </v-list>
 
+      <!-- daily sales -->
+      <div class="text-center white--text mt-4">
+        <hr >
+        <h3 class="mt-10">Today's Sales</h3>
+        <h1 class="mb-10 success--text">{{formatMoney(todaysSale | 0)}}</h1>
+        <!-- <hr> -->
+        <h3 class="mt-7">Today's Expenses</h3>
+        <h1 class="warning--text">{{formatMoney(590)}}</h1>
+      </div>
+
     </v-navigation-drawer>
     <v-app-bar
-
       app
       color="#2C3A47"
       dark
@@ -154,19 +163,23 @@
           <Pos ref="init"  />
       </v-card>
     </v-dialog>
+    
   </v-row>
-
   </v-app>
 </template>
 
 <script>
 //import * as auth from '../services/auth_service'
+import FormatHelper from '@/mixins/FormatHelper'
+import {apiTodaysSale} from '@/api/transaction.api'
 import Pos from '@/views/Pos'
   export default {
+    mixins:[FormatHelper],
     props: {
       source: String,
     },
     data: () => ({
+    todaysSale:'',
     dialog: false,
     drawer: null,
       mini: false,
@@ -196,14 +209,20 @@ import Pos from '@/views/Pos'
           ],
         },
         { icon: 'mdi-finance', text: 'Revenue', route:'/revenue' },
-        { icon: 'mdi-chart-pie', text: 'Analytics', route:'/chart' },
-        { icon: 'mdi-magnify', text: 'Search', route:'/recherches' },
+        { icon: 'mdi-file-chart', text: 'reports', route:'/reports' },
+        { icon: 'mdi-cog', text: 'Settings', route:'/Settings' },
       ],
     }),
   
     mounted(){
+      this.initialize()
     },
     methods: {
+      initialize () {
+        apiTodaysSale().then(({data}) => {
+            this.todaysSale = data[0].total
+        })
+      },
 
       onScroll (e) {
         if (typeof window === 'undefined') return

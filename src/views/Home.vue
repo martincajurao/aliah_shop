@@ -9,7 +9,7 @@
                 <apexchart  height="270" width="100%" :options="salesOption" :series="series"></apexchart>
             </v-flex>
             <v-flex  xs6 class="">
-                <apexchart type="bar" height="250"  width="93%" :options="InvoiceChartOptions" :series="invoiceSeries"></apexchart>
+                <apexchart type="bar" height="270"  width="93%" :options="InvoiceChartOptions" :series="invoiceSeries"></apexchart>
             </v-flex>
         </v-layout>
       </v-container>

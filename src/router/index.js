@@ -35,7 +35,12 @@ Vue.use(VueRouter)
     path: '/employee',
     name: 'employee',
     component: () => import(/* webpackChunkName: "products" */ '../views/Home.vue')
-  }
+  },
+  {
+    path: '/reports',
+    name: 'reports',
+    component: () => import(/* webpackChunkName: "products" */ '../views/Reports.vue')
+  },
 ]
 
 const router = new VueRouter({

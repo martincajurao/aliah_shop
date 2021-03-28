@@ -80,16 +80,13 @@
                       :error-messages="errors.collect('Product Category')"
                       data-vv-name="Product Category"
                     ></v-select>
+                    <v-text-field
+                      v-model="editedItem.desc"
+                      label="Barcode"
+                    ></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-textarea
-                      height="100px"
-                      dense
-                      v-model="editedItem.desc"
-                      label="Product Description"
-                      outlined
-                      class="mb-0"
-                    ></v-textarea>
+                    <vue-barcode style="margin:auto; display:block; width:100%;" height="30" v-model="editedItem.desc"  fontOptions="bold"></vue-barcode>
                   </v-col>
                 </v-row>
               </v-container>
@@ -202,10 +199,12 @@
 import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct} from "@/api/product.api";
 import {apiGetAllCategory} from "@/api/category.api";
 import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
+import VueBarcode from 'vue-barcode';
   export default {
     mixins: [ImagePreviewMixin],
     name:'imageUpload',
     data: () => ({
+      barcode:'jkhasdyqw',
       items:[],
       previewImage:require('@/assets/default.jpg'),
       search:'',
@@ -216,13 +215,13 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       dialogDelete: false,
       headers: [
         { text: "Image", value: "img", sortable: false },
-        { text: 'Product code', value: 'id' },
         {
           text: 'Product Name',
           align: 'start',
           sortable: false,
           value: 'name',
         },
+        { text: 'Product code', value: 'desc' },
         { text: 'Category', value: 'category.name' },
         { text: 'Price', value: 'price' },
         { text: 'Stocks', value: 'stocks' },
@@ -360,10 +359,13 @@ import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
       },
       clear(){
         this.previewImage=require('@/assets/default.jpg')
-      }
+      },
    
        
     },
+    components:{
+      VueBarcode,
+    }
   }
 </script>
 
