@@ -16,3 +16,6 @@ export const  apiGenerateRecieptPdf = ( payload) => {
 export const  apiPrintReciept = ( payload) => {
     return Axios.post(`${resource}/reciept_print`, payload,)
 }
+export const  apiPrintSalesReport = ( payload) => {
+    return Axios.post(`${resource}/sales_print`, payload,)
+}

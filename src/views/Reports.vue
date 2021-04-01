@@ -1,4 +1,6 @@
 <template  >
+<div>
+  <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
     <div class="mx-3 pt-2" >
         <v-card>
             <v-toolbar
@@ -161,14 +163,18 @@
 
         </v-card>
     </div>
+</div>
 </template>
 <script>
 import {apiGetAllTransactions, apiPrintSalesReport, apiSearchSalesReport} from "@/api/transaction.api";
 import FormatHelper from "@/mixins/FormatHelper"
+import PdfPreview from '@/components/features/PrintPreviewPdf'
 
   export default {
     mixins:[FormatHelper],
     data: () => ({
+    previewDialogStatus: false,
+    filename:'',
     fromDateMenu: false,
     toDateMenu: false,
     fromDateVal: null,
@@ -180,7 +186,7 @@ import FormatHelper from "@/mixins/FormatHelper"
     headers: [
         { text: 'Invoice #',sortable: false, value: 'invoice_no',},
         { text: 'Customer',sortable: false, value: 'client.name', },
-        { text: 'Phone #', sortable: false, value: 'client.phone' },
+        // { text: 'Phone #', sortable: false, value: 'client.phone' },
         { text: 'Amount', sortable: false, value: 'amount' },
         { text: 'Created at', sortable: false, value: 'created_at' },
       ],
@@ -215,7 +221,14 @@ import FormatHelper from "@/mixins/FormatHelper"
             })
         },
         print(){
-            apiPrintSalesReport((this.transactions)).then(response => {
+            apiPrintSalesReport((
+                {
+                    data:this.transactions, 
+                    from:this.fromDateVal, 
+                    to:this.toDateVal,
+                    total:this.total
+                }
+                )).then(response => {
                 this.filename = 'preview.pdf'
                 this.previewDialogStatus=true
                 this.errorMessage = ''
@@ -228,5 +241,8 @@ import FormatHelper from "@/mixins/FormatHelper"
         },
 
     },
+    components:{
+     PdfPreview,
+    }
   }
 </script>

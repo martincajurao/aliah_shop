@@ -1,8 +1,10 @@
+
 <script>
 import moment from 'moment'
 export default {
     data () {
       return{
+        
       }
     },
     methods:{
@@ -14,6 +16,9 @@ export default {
         formatMoney(n) {
           return "₱ " + (Math.round(n * 100) / 100).toLocaleString();
         },
+        random(min,max){
+            return Math.floor(Math.random()*(max-min+1)+min);
+        }
        
       }
 }

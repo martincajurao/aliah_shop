@@ -14,7 +14,7 @@
                 flat
                 autofocus
                 dense
-                @input="searchProduct"
+                @input="searchBarcode"
                 class="my-0 py-0"
                 style="position:absolute; top:11%; right:15%; width:20%;"
                 ></v-text-field>
@@ -74,7 +74,7 @@
                     <tbody style="height:60vh;">
                       <tr  class="ml-0 pl-0 " v-for="item in purchase" :key="item.name">
                         <td colspan="2" class="text-left pl-0">{{ item.name }}</td>
-                        <td class="text-right">{{ formatMoney(item.price) }}</td>
+                        <td class="text-right"><div style="width:48px; display:block;">{{ formatMoney(item.price) }}</div></td>
                         <td class="text-right">
                           <div style="width:60px;">
                             <button @click="decrement(item)" class="py-0 px-1 btn btn-info" style="border: 1px solid #f2f2f2; background-color: #f2f2f2; ">-</button>
@@ -82,7 +82,7 @@
                             <button @click="addToPurchase(item)" class="py-0 px-1" style="border: 1px solid #f2f2f2; background-color:#f2f2f2;">+</button>
                           </div>
                         </td>
-                        <td class="text-right">{{ formatMoney(item.subtotal) }}</td>
+                        <td class="text-right"><div style="width:48px; display:block;">{{ formatMoney(item.subtotal) }}</div></td>
                       </tr>
                     </tbody>
                  
@@ -177,7 +177,7 @@
                                     <v-text-field
                                       label="Phone #"
                                       v-model="item.phone"
-                                      v-validate="'required|digits:11'"  
+                                      v-validate="'digits:11'"  
                                       :error-messages="errors.collect('Phone')"
                                       data-vv-name="Phone"
                                       :loading="loader"
@@ -294,7 +294,7 @@
     </div>
 </template>
 <script>
-import {apiGetAllProducts,apiSearchProduct} from "@/api/product.api";
+import {apiGetAllProducts,apiSearchProduct,apiSearchBarcode} from "@/api/product.api";
 import {apiGetAllClients} from "@/api/client.api";
 import {apiCreateTransaction} from "@/api/transaction.api";
 import { ModelSelect } from 'vue-search-select'
@@ -438,11 +438,30 @@ export default {
         });
       },
       searchProduct(){
-       
         apiSearchProduct(this.search).then(({data})=>{
           this.products = data
           console.log(data)
         })
+      },
+      searchBarcode(){
+        if (this.barcode.length==10) {
+          apiSearchBarcode(this.barcode).then(({data})=>{
+            //  let qty=1
+            // this.purchase.push({
+            //   id : data[0].id,
+            //   img : data[0].img,
+            //   name : data[0].name,
+            //   price : data[0].price,
+            //   qty : 1,
+            //   subtotal : (qty * data[0].price),
+            // })
+            //   this.computeTotal()
+
+            this.addToPurchase(data[0])
+              this.barcode=''
+              console.log(data[0])
+          })
+        }
       },
       justCreateNew(){
         this.showSelectClient=false,
@@ -455,7 +474,6 @@ export default {
           }
       },
       checkPaymentDialog(){
-         
         if (this.total>0) {
           this.paymentDialog = true
         }

@@ -15,7 +15,7 @@
       </v-container>
       <v-col cols="10" sm="12" >
         <v-card class="pb-0 ml-4" style="width:97%; margin-bottom:0px; ">
-            <h3 class="py-3">Latest Transactions</h3>
+            <h3 class="py-3">Recent Transactions</h3>
             <v-text-field
               v-model="search"
               prepend-inner-icon="mdi-magnify"
@@ -115,21 +115,17 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
 
       invoiceSeries: [
                 {
-                    name: 'Paid',
-                    data: [280]
+                    name: 'Total Sales',
+                    data: [200]
                 }, 
                 {
-                    name: 'Total',
+                    name: 'Total Assets',
                     data: [100]
                 }, 
                 {
-                    name: 'Partially Paid',
+                    name: 'Total Expenses',
                     data: [320]
                 },
-                {
-                    name: 'Unpaid',
-                    data: [150]
-                }
             ],
             InvoiceChartOptions: {
                 chart: 
@@ -157,7 +153,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 },
                 xaxis: 
                 {
-                    categories: ['2021'],
+                    categories: ['-'],
                 },
                 yaxis: 
                 {
@@ -246,6 +242,11 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         })
          apiGetAllTransactions().then(({data}) => {
             this.transactions = data
+            data = data.map(x => {
+                return x.amount
+            })
+            const total = data.reduce((a, b) => a + b, 0)
+            this.invoiceSeries.data = total
         })
       },
       searchProduct(){

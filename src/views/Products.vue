@@ -1,6 +1,6 @@
 <template>
 <div class="container mx-3 clickable">
-  
+  <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
   <v-card-title>
       <h3>Products</h3>
       <v-dialog v-model="dialog" max-width="500px">
@@ -83,10 +83,11 @@
                     <v-text-field
                       v-model="editedItem.desc"
                       label="Barcode"
+                      readonly
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <vue-barcode style="margin:auto; display:block; width:100%;" height="30" v-model="editedItem.desc"  fontOptions="bold"></vue-barcode>
+                    <vue-barcode style="margin:auto; display:block; width:100%;" height="40" v-model="editedItem.desc"   fontOptions="bold"></vue-barcode>
                   </v-col>
                 </v-row>
               </v-container>
@@ -130,6 +131,13 @@
         </v-chip>
     </template>
 
+    <template v-slot:item.created_at="{ item }">
+      {{ format_date(item.created_at) }}
+    </template>
+    <template v-slot:item.price="{ item }">
+      {{ formatMoney(item.price) }}
+    </template>
+
     <template v-slot:item.img="{ item }">
         <img
           width="50px"
@@ -155,8 +163,8 @@
     </template>
 
     <template v-slot:item.actions="{ item }">
-      <v-icon small class="mr-2 info--text" @click="editItem(item)">
-        mdi-eye
+      <v-icon small class="mr-2 info--text" @click="showbarcodeDialog(item)">
+        mdi-barcode
       </v-icon>
       <v-icon small class="mr-2 info--text" @click="editItem(item)">
         mdi-pencil
@@ -193,18 +201,75 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+<!-- dialog pop up -->
+    <div class="text-center">
+      <v-dialog
+        v-model="bacodeDialog"
+        width="400"
+        class="pa-10"
+      >
+        <v-card>
+          <v-card-title class="info white--text">
+            Barcode Generator
+          </v-card-title>
+          <v-card-text>
+            <v-text-field
+              v-model="count"
+              label="Number of Pieces"
+              v-validate="'required|numeric'"  
+              :error-messages="errors.collect('Number of pieces')"
+              data-vv-name="Number of pieces"
+              class="my-6"
+            ></v-text-field>
+            <v-select
+              :items="barcodeSettings"
+              item-text="name"
+              item-value="value"
+              v-model="barcodePaperSize"
+              dense
+              label="Paper Size"
+            ></v-select>
+          </v-card-text>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="info"
+              outlined
+              @click="bacodeDialog = false"
+            >
+              Close
+            </v-btn>
+            <v-btn
+              color="info"
+              @click="generateBarcode"
+            >
+              Generate
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
   </div>
 </template>
 <script>
-import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct} from "@/api/product.api";
+import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct, apiGenerateBarcode} from "@/api/product.api";
 import {apiGetAllCategory} from "@/api/category.api";
 import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
 import VueBarcode from 'vue-barcode';
+import FormatHelper from "@/mixins/FormatHelper"
+import PdfPreview from '@/components/features/PrintPreviewPdf'
+
   export default {
-    mixins: [ImagePreviewMixin],
+    mixins: [ImagePreviewMixin,FormatHelper],
     name:'imageUpload',
     data: () => ({
-      barcode:'jkhasdyqw',
+      previewDialogStatus: false,
+      filename:'',
+      barcode:'',
+      selected_id:'',
+      bacodeDialog:false,
       items:[],
       previewImage:require('@/assets/default.jpg'),
       search:'',
@@ -213,6 +278,9 @@ import VueBarcode from 'vue-barcode';
       text:'Successfully Saved!',
       dialog: false,
       dialogDelete: false,
+      barcodePaperSize:'A4',
+      count:5,
+      barcodeSettings:[{name:'A4', value:'A4'},{name:'Letter', value:'Letter'},{name:'Legal', value:'Legal'}, ],
       headers: [
         { text: "Image", value: "img", sortable: false },
         {
@@ -221,11 +289,11 @@ import VueBarcode from 'vue-barcode';
           sortable: false,
           value: 'name',
         },
-        { text: 'Product code', value: 'desc' },
+        { text: 'Barcode', value: 'desc' },
         { text: 'Category', value: 'category.name' },
         { text: 'Price', value: 'price' },
         { text: 'Stocks', value: 'stocks' },
-        // { text: 'Status', value: 'stocks' },
+        { text: 'Date Created', value: 'created_at' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
       desserts: [],
@@ -358,13 +426,26 @@ import VueBarcode from 'vue-barcode';
         };
       },
       clear(){
+        this.editedItem.desc = Math.floor(1000000000 + Math.random() * 900000)
         this.previewImage=require('@/assets/default.jpg')
       },
-   
+      showbarcodeDialog(item){
+        this.bacodeDialog=true
+        this.selected_id = item.id
+      },
+      generateBarcode(){
+        apiGenerateBarcode({id:this.selected_id, size:this.barcodePaperSize, count:parseInt(this.count)}).then(({data}) =>{
+          console.log(data)
+          this.bacodeDialog=false
+          this.filename = 'preview.pdf'
+          this.previewDialogStatus=true
+        })
+      }
        
     },
     components:{
       VueBarcode,
+      PdfPreview
     }
   }
 </script>
