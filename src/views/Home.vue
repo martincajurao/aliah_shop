@@ -3,13 +3,13 @@
 <div>
   <v-layout>
     <v-row row wrap>
-      <v-container style="max-height: 280px; overflow-y: hidden;" grid-list-md class='content ml-3 mr-2 '>
+      <v-container style="max-height: 280px; overflow-y: hidden;" grid-list-md class='content ml-3 mr-2 mt-5 '>
         <v-layout row wrap>
             <v-flex  xs6>
-                <apexchart  height="270" width="100%" :options="salesOption" :series="series"></apexchart>
+                <apexchart ref="areachart"  height="270" width="99%" :options="salesOption" :series="series"></apexchart>
             </v-flex>
-            <v-flex  xs6 class="">
-                <apexchart type="bar" height="270"  width="93%" :options="InvoiceChartOptions" :series="invoiceSeries"></apexchart>
+            <v-flex  xs6>
+                <apexchart ref="barchart"  height="270" width="97%" :options="salesOption2" :series="series2"></apexchart>
             </v-flex>
         </v-layout>
       </v-container>
@@ -90,7 +90,8 @@ import {
   apiGetAllTransactions, 
   apiSearchTransaction, 
   apiGenerateRecieptPdf, 
-  apiPrintReciept
+  apiPrintReciept,
+  getBarsData
 } from "@/api/transaction.api";
 import {getChartData } from "@/api/chart.api";
 import FormatHelper from "@/mixins/FormatHelper"
@@ -99,7 +100,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
   export default {
     mixins:[FormatHelper],
     data: () => ({
-      previewDialogStatus: false,
+      previewDialogStatus:false,
       filename:'',
       itemsPerPage: 5,
       search:'',
@@ -112,62 +113,6 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         { text: 'Created at', sortable: false, value: 'created_at' },
         { text: 'Actions',sortable: false, value: 'actions' },
       ],
-
-      invoiceSeries: [
-                {
-                    name: 'Total Sales',
-                    data: [200]
-                }, 
-                {
-                    name: 'Total Assets',
-                    data: [100]
-                }, 
-                {
-                    name: 'Total Expenses',
-                    data: [320]
-                },
-            ],
-            InvoiceChartOptions: {
-                chart: 
-                {
-                    type: 'bar',
-                    height: 280
-                },
-                plotOptions: 
-                {
-                    bar: {
-                        horizontal: false,
-                        columnWidth: '55%',
-                        endingShape: 'rounded'
-                    },
-                },
-                dataLabels: 
-                {
-                    enabled: true
-                },
-                stroke: 
-                {
-                    show: true,
-                    width: 2,
-                    colors: ['transparent']
-                },
-                xaxis: 
-                {
-                    categories: ['-'],
-                },
-                yaxis: 
-                {
-                    title: {
-                        text: 'Invoice Count'
-                    }
-                },
-                fill: 
-                {
-                    opacity: 1
-                },
-                
-            },
-
 
         series: [{
           name: 'sales',
@@ -211,8 +156,69 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
             text: 'Sales Graph',
             align: 'left'
           },
-        },
-        
+          tooltip: 
+          {
+              y: {
+                  formatter: function (num) {
+                  return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+                  }
+              }
+          }
+       },
+
+
+      series2: [],
+
+      salesOption2: {
+          chart: 
+          {
+              type: 'bar',
+              height: 270
+          },
+          plotOptions: 
+          {
+              bar: {
+                  horizontal: false,
+                  columnWidth: '50%',
+                  endingShape: 'rounded'
+              },
+          },
+          dataLabels: 
+          {
+              enabled: true,
+              formatter: function (num) {
+                  return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+              }
+          },
+          stroke: 
+          {
+              show: true,
+              width: 2,
+              colors: ['transparent']
+          },
+          xaxis: 
+          {
+              categories: [''],
+          },
+          yaxis: 
+          {
+              title: {
+                  text: 'Statistics'
+              }
+          },
+          fill: 
+          {
+              opacity: 1
+          },
+          tooltip: 
+          {
+              y: {
+                  formatter: function (num) {
+                  return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+                  }
+              }
+          }
+      },
         
     }),
 
@@ -226,6 +232,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     },
     watch:{
       trigger() {
+        this.$forceUpdate();
         this.initialize()
       }
     },
@@ -234,19 +241,35 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         window.location.reload()
       },
       initialize () {
-        this.previewDialogStatus=false
         getChartData().then(({data}) => {
             const map1 = data.map(function (arr) { return [arr.date, arr.sales]})
-            this.series[0].data = map1
-            // console.log(this.series[0].data,'depota')
+            // this.series[0].data = map1
+            this.$refs.areachart.updateSeries([{
+              data: map1
+            }], Animation);
         })
-         apiGetAllTransactions().then(({data}) => {
+        getBarsData().then(({data}) => {
+            // this.series2[0].data = [data[1][0].total_sales]
+            // this.series2[1].data = [data[0][0].total_assets]
+            // this.series2[2].data = [data[2][0].total_expenses]
+
+            this.$refs.barchart.updateSeries([
+                {
+                    name: 'Total Sales',
+                    data: [data[1][0].total_sales]
+                }, 
+                {
+                    name: 'Total Assets',
+                    data: [data[0][0].total_assets]
+                }, 
+                {
+                    name: 'Total Expenses',
+                    data: [data[2][0].total_expenses]
+                }
+            ], Animation);
+        })
+        apiGetAllTransactions().then(({data}) => {
             this.transactions = data
-            data = data.map(x => {
-                return x.amount
-            })
-            const total = data.reduce((a, b) => a + b, 0)
-            this.invoiceSeries.data = total
         })
       },
       searchProduct(){

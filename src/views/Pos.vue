@@ -429,7 +429,7 @@ export default {
               this.initialize()
               this.dialogx = true
               this.$refs.form.reset()
-              this.$store.commit('change', 'triggered')
+              this.$store.commit('change', Date())
             }).finally(data =>{
               this.loader=false
               console.log(data)

@@ -87,7 +87,7 @@
         style="width: 300px"
         class="ml-0 pl-4"
       >
-        <span class="hidden-sm-and-down">Inventory System</span>
+        <span class="hidden-sm-and-down">Inventory System</span> <v-icon @click="refresh" color="success">mdi-refresh</v-icon>
       </v-toolbar-title>
       <v-spacer />
       <v-btn icon   class="clickable">
@@ -107,7 +107,7 @@
       </v-container>
     </v-main>
    
-    <v-btn
+    <!-- <v-btn
     v-scroll="onScroll"
     bottom
     color="pink"
@@ -119,7 +119,18 @@
     class="clickable"
     >
     <v-icon>mdi-chevron-up</v-icon>
-    </v-btn>
+    </v-btn> -->
+    <v-btn
+          color="pink"
+          dark
+          bottom
+          fab
+          fixed
+          right
+          @click="triggerInit"
+          >
+          <v-icon>mdi-cart</v-icon>
+        </v-btn>
   <v-row justify="center">
     <v-dialog
       v-model="dialog"
@@ -127,22 +138,6 @@
       hide-overlay
       transition="dialog-bottom-transition"
     >
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn
-          bottom
-          color="success"
-          dark
-          v-on="on"
-          v-bind="attrs"
-          fab
-          fixed
-          right
-          @click="triggerInit"
-          style="bottom:11%"
-          >
-          <v-icon>mdi-cart</v-icon>
-        </v-btn>
-      </template>
       <v-card>
         <v-toolbar
           dark
@@ -217,6 +212,17 @@ import Pos from '@/views/Pos'
     mounted(){
       this.initialize()
     },
+    computed: {
+      trigger() {
+        return this.$store.getters.flavor
+      }
+    },
+    watch:{
+      trigger() {
+        this.$forceUpdate();
+        this.initialize()
+      }
+    },
     methods: {
       initialize () {
         apiTodaysSale().then(({data}) => {
@@ -233,7 +239,15 @@ import Pos from '@/views/Pos'
         this.$vuetify.goTo(0)
       },
       triggerInit() {
+        this.dialog=true
         this.$refs.init.initialize()
+      },
+      refresh(){
+        location.reload();
+        // this.$forceUpdate();
+        // this.$refs.init.initialize()
+        // this.$store.commit('change', Date())
+        // this.initialize()
       }
     },
     components:{

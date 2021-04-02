@@ -6,6 +6,7 @@ export const  apiGetAllTransactions = () => Axios.get(`${resource}`)
 export const  apiSearchTransaction = (query) => Axios.get(`${resource}-search/?search=${query}`)
 export const  apiSearchSalesReport = (from, to) => Axios.get(`search_sales/?from=${from}&to=${to}`)
 export const  apiChartTransaction = () => Axios.get(`/depota`)
+export const  getBarsData = () => Axios.get(`/bars`)
 export const  apiTodaysSale = () => Axios.get(`/todays_sale`)
 
 
