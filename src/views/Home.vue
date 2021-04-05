@@ -1,20 +1,20 @@
 
 <template>
-<div>
-  <v-layout>
-    <v-row row wrap>
-      <v-container style="max-height: 280px; overflow-y: hidden;" grid-list-md class='content ml-3 mr-2 mt-5 '>
+<div class="mb-0">
+  <v-layout class="mr-5">
+    <v-row row wrap class="">
+      <v-container style="max-height: 280px; overflow-y: hidden;" grid-list-md class='content ml-3  mt-5 '>
         <v-layout row wrap>
             <v-flex  xs6>
-                <apexchart ref="areachart"  height="270" width="99%" :options="salesOption" :series="series"></apexchart>
+                <apexchart ref="areachart"  height="270" width="100%" :options="salesOption" :series="series"></apexchart>
             </v-flex>
             <v-flex  xs6>
-                <apexchart ref="barchart"  height="270" width="97%" :options="salesOption2" :series="series2"></apexchart>
+                <apexchart ref="barchart"  height="270" width="100%" :options="salesOption2" :series="series2"></apexchart>
             </v-flex>
         </v-layout>
       </v-container>
       <v-col cols="10" sm="12" >
-        <v-card class="pb-0 ml-4" style="width:97%; margin-bottom:0px; ">
+        <v-card class="pb-0 ml-4" style="width:99%; margin-bottom:0px; ">
             <h3 class="py-3">Recent Transactions</h3>
             <v-text-field
               v-model="search"
@@ -135,7 +135,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 zoomin: true,
                 zoomout: true,
                 pan: true,
-                reset: false | '<img src="/static/icons/reset.png" width="20">',
+                reset: true | '<img src="/static/icons/reset.png" width="20">',
                 customIcons: []
               },
             },
@@ -147,8 +147,13 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           yaxis: {
             title: {
                 text: 'Sales Amount'
-            }
-          },
+            },
+            labels: {
+              formatter: function (num) {
+              return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+              }
+            },
+    },
           dataLabels: {
               enabled: false
           },
@@ -204,7 +209,12 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           {
               title: {
                   text: 'Statistics'
+              },
+              labels: {
+                formatter: function (num) {
+                return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
               }
+            },
           },
           fill: 
           {
@@ -249,10 +259,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
             }], Animation);
         })
         getBarsData().then(({data}) => {
-            // this.series2[0].data = [data[1][0].total_sales]
-            // this.series2[1].data = [data[0][0].total_assets]
-            // this.series2[2].data = [data[2][0].total_expenses]
-
+     
             this.$refs.barchart.updateSeries([
                 {
                     name: 'Total Sales',

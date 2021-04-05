@@ -121,28 +121,94 @@
                     </v-card-text>
                     </v-card>
                 </v-tab-item>
+
+                <!-- Expenses  ########################################## -->
                 <v-tab-item>
-                    <v-card flat>
-                    <v-card-text>
-                        <p>
-                        Morbi nec metus. Suspendisse faucibus, nunc et pellentesque egestas, lacus ante convallis tellus, vitae iaculis lacus elit id tortor. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Curabitur ligula sapien, tincidunt non, euismod vitae, posuere imperdiet, leo. Nunc sed turpis.
-                        </p>
+                    <v-card flat min-width="1090" >
+                    <v-card-text  style="width:100%;">
+                        <v-row class="pa-4">
+                            <h2>Expenses Report</h2>
+                            <div style="width:230px; position:absolute; left:18%; top:1.8%;" >
+                                <v-menu
+                                v-model="fromDateMenu2"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="290px"
+                                >
+                                <template v-slot:activator="{ on }">
+                                    <v-text-field
+                                    label="From"
+                                    prepend-icon="event"
+                                    readonly
+                                    v-model="fromDateVal2"
+                                    v-on="on"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker
+                                    locale="en-in"
+                                    :min="minDate"
+                                    :max="maxDate"
+                                    v-model="fromDateVal2"
+                                    @input="searchExpenses"
 
-                        <p>
-                        Suspendisse feugiat. Suspendisse faucibus, nunc et pellentesque egestas, lacus ante convallis tellus, vitae iaculis lacus elit id tortor. Proin viverra, ligula sit amet ultrices semper, ligula arcu tristique sapien, a accumsan nisi mauris ac eros. In hac habitasse platea dictumst. Fusce ac felis sit amet ligula pharetra condimentum.
-                        </p>
+                                ></v-date-picker>
+                                </v-menu>
+                            </div>
+                            <div style="width:230px; position:absolute; left:40%; top:2%;" >
+                                <v-menu
+                                v-model="toDateMenu2"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="290px"
+                                >
+                                <template v-slot:activator="{ on }">
+                                    <v-text-field
+                                    label="To"
+                                    prepend-icon="event"
+                                    readonly
+                                    v-model="toDateVal2"
+                                    v-on="on"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker
+                                    locale="en-in"
+                                    :min="fromDateVal2"
+                                    :max="maxDate"
+                                    v-model="toDateVal2"
+                                    @input="searchExpenses"
+                                ></v-date-picker>
+                                </v-menu>
+                            </div>
+                            <v-spacer></v-spacer>
+                            <h2 class="mr-5">Total Expenses: <v-chip color="info">{{formatMoney(total2)}}</v-chip> </h2>
+                            <v-icon  class="mr-2 primary--text" @click="printExpenses()">
+                                mdi-printer
+                            </v-icon>
+                            <v-icon  @click="exportPdf(item)" class=" primary--text">
+                                mdi-file-download
+                            </v-icon>
+                        </v-row>
+                        <v-data-table
+                        :headers="headers2"
+                        dense
+                        :items="expenses"
+                        sort-by="name"
+                        class="elevation-1"
+                        >
+                       <template v-slot:item.created_at="{ item }">
+                        {{ format_date(item.created_at) }}
+                        </template>
+                        <template v-slot:item.amount="{ item }">
+                        {{ formatMoney(item.amount) }}
+                        </template>
 
-                        <p>
-                        Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Nam commodo suscipit quam. In consectetuer turpis ut velit. Sed cursus turpis vitae tortor. Aliquam eu nunc.
-                        </p>
-
-                        <p>
-                        Etiam ut purus mattis mauris sodales aliquam. Ut varius tincidunt libero. Aenean viverra rhoncus pede. Duis leo. Fusce fermentum odio nec arcu.
-                        </p>
-
-                        <p class="mb-0">
-                        Donec venenatis vulputate lorem. Aenean viverra rhoncus pede. In dui magna, posuere eget, vestibulum et, tempor auctor, justo. Fusce commodo aliquam arcu. Suspendisse enim turpis, dictum sed, iaculis a, condimentum nec, nisi.
-                        </p>
+                        </v-data-table>
                     </v-card-text>
                     </v-card>
                 </v-tab-item>
@@ -167,6 +233,7 @@
 </template>
 <script>
 import {apiGetAllTransactions, apiPrintSalesReport, apiSearchSalesReport} from "@/api/transaction.api";
+import {apiSearchExpensesReport,apiGetAllExpenses,apiPrintExpensesReport} from "@/api/expenses.api";
 import FormatHelper from "@/mixins/FormatHelper"
 import PdfPreview from '@/components/features/PrintPreviewPdf'
 
@@ -179,14 +246,24 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     toDateMenu: false,
     fromDateVal: null,
     toDateVal: null,
+    fromDateMenu2: false,
+    toDateMenu2: false,
+    fromDateVal2: null,
+    toDateVal2: null,
+    total:0,
+    total2:0,
     minDate: "2021-03-04",
     maxDate: new Date().toISOString().slice(0, 10),
-    total:0,
     transactions:[],
+    expenses:[],
     headers: [
         { text: 'Invoice #',sortable: false, value: 'invoice_no',},
         { text: 'Customer',sortable: false, value: 'client.name', },
-        // { text: 'Phone #', sortable: false, value: 'client.phone' },
+        { text: 'Amount', sortable: false, value: 'amount' },
+        { text: 'Created at', sortable: false, value: 'created_at' },
+      ],
+    headers2: [
+        { text: 'Subject',sortable: false, value: 'subject',},
         { text: 'Amount', sortable: false, value: 'amount' },
         { text: 'Created at', sortable: false, value: 'created_at' },
       ],
@@ -198,6 +275,14 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         initialize(){
             apiGetAllTransactions().then(({data}) => {
                 this.transactions = data
+                data = data.map(x => {
+                    return x.amount
+                })
+                const total = data.reduce((a, b) => a + b, 0)
+                this.total = total
+            })
+            apiGetAllExpenses().then(({data}) => {
+                this.expenses = data
                 data = data.map(x => {
                     return x.amount
                 })
@@ -220,6 +305,21 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 this.total = total
             })
         },
+        searchExpenses(){
+            this.fromDateMenu2 = false
+            this.toDateMenu2 = false
+            if (this.toDateVal2 == null) {
+                this.toDateVal2 = new Date().toISOString().slice(0, 10)
+            }
+            apiSearchExpensesReport(this.fromDateVal2, this.toDateVal2).then(({data}) => {
+                this.expenses = data
+                data = data.map(x => {
+                    return x.amount
+                })
+                const total = data.reduce((a, b) => a + b, 0)
+                this.total2 = total
+            })
+        },
         print(){
             apiPrintSalesReport((
                 {
@@ -227,6 +327,25 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                     from:this.fromDateVal, 
                     to:this.toDateVal,
                     total:this.total
+                }
+                )).then(response => {
+                this.filename = 'preview.pdf'
+                this.previewDialogStatus=true
+                this.errorMessage = ''
+                console.log(response)
+            }).catch(data=>{
+                console.log(data)
+            }).finally(data=>{
+                console.log(data)
+            })
+        },
+        printExpenses(){
+            apiPrintExpensesReport((
+                {
+                    data:this.expenses, 
+                    from:this.fromDateVal2, 
+                    to:this.toDateVal2,
+                    total:this.total2
                 }
                 )).then(response => {
                 this.filename = 'preview.pdf'

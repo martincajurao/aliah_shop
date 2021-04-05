@@ -1,8 +1,8 @@
 <template >
     <div id="app" >
-        <v-container style="background-color:white;">
+        <v-container style="background-color:white;" >
           <v-row >
-             <v-col md="8" >
+             <v-col md="8"  >
               
               <div style="width:20%; display:inline-block;"><h3>Recent Purchase </h3></div>
               <div style="width:80%; display:inline-block;">
@@ -27,10 +27,10 @@
                 dense
                 @input="searchProduct"
                 class="my-0 py-0"
-                style="position:absolute; top:11%; width:46%;"
+                style="position:absolute; top:10%; width:46%;"
                 ></v-text-field>
               </div>
-               <v-row>
+               <v-row class="mt-1">
                 
                 <v-card id="cards" v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
                   <v-img
@@ -60,7 +60,7 @@
                </v-row>
              </v-col>
              <v-col md="4" >
-              <v-card style="height:75vh;" class="mt-9 px-3 ">
+              <v-card style="height:75vh;" class="mt-10 px-3 ">
                 <v-simple-table height="382">
                     <thead>
                       <tr>

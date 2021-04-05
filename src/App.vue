@@ -73,7 +73,7 @@
         <h1 class="mb-10 success--text">{{formatMoney(todaysSale | 0)}}</h1>
         <!-- <hr> -->
         <h3 class="mt-7">Today's Expenses</h3>
-        <h1 class="warning--text">{{formatMoney(590)}}</h1>
+        <h1 class="warning--text">{{formatMoney(todaysExpense)}}</h1>
       </div>
 
     </v-navigation-drawer>
@@ -174,6 +174,7 @@ import Pos from '@/views/Pos'
       source: String,
     },
     data: () => ({
+    todaysExpense:'',
     todaysSale:'',
     dialog: false,
     drawer: null,
@@ -203,7 +204,7 @@ import Pos from '@/views/Pos'
         { icon: 'mdi-account-multiple-outline', text: 'Employee', route:'/employee' },
           ],
         },
-        { icon: 'mdi-finance', text: 'Revenue', route:'/revenue' },
+        { icon: 'mdi-finance', text: 'Expenses', route:'/expenses' },
         { icon: 'mdi-file-chart', text: 'reports', route:'/reports' },
         { icon: 'mdi-cog', text: 'Settings', route:'/Settings' },
       ],
@@ -226,7 +227,9 @@ import Pos from '@/views/Pos'
     methods: {
       initialize () {
         apiTodaysSale().then(({data}) => {
-            this.todaysSale = data[0].total
+            this.todaysSale = data[0][0].total
+            this.todaysExpense = data[1][0].total_expenses
+            console.log(data,'todays')
         })
       },
 

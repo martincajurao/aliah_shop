@@ -22,9 +22,9 @@ Vue.use(VueRouter)
     component: () => import(/* webpackChunkName: "products" */ '../views/Products.vue')
   },
   {
-    path: '/revenue',
-    name: 'revenue',
-    component: () => import(/* webpackChunkName: "products" */ '../views/Home.vue')
+    path: '/expenses',
+    name: 'expenses',
+    component: () => import(/* webpackChunkName: "products" */ '../views/Expense.vue')
   },
   {
     path: '/clients',
