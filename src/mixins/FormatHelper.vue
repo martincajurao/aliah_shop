@@ -4,7 +4,7 @@ import moment from 'moment'
 export default {
     data () {
       return{
-        
+        loader:false
       }
     },
     methods:{

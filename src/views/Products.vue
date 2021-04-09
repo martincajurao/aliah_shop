@@ -3,7 +3,7 @@
   <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
   <v-card-title>
       <h3>Products</h3>
-      <v-dialog v-model="dialog" max-width="500px">
+      <v-dialog v-model="dialog" max-width="700px">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               color="primary darken-3 btn-white"
@@ -25,16 +25,16 @@
        
             <v-card-text class="my-0 py-0">
               <v-container class="my-0 py-0">
-                <v-row class="my-0 py-0">
-                  <v-col cols="6" >
+                <v-row no-gutters class="my-0 py-0">
+                  <v-col cols="4" >
                     <v-card  flat>
-                      <v-card-title>Image Preview</v-card-title>
+                      <h3>Image Preview</h3>
                       <v-card-text>
                         <img 
                         :src="previewImage" 
                         class="uploading-image mt-0 "
-                        height="180px"
-                        width="180px" 
+                        height="170px"
+                        width="170px" 
                         />
                         <input
                          hide-details="auto"
@@ -46,7 +46,7 @@
                       </v-card-text>
                     </v-card>
                   </v-col>
-                  <v-col cols="6" >
+                  <v-col cols="8" >
                     <v-text-field
                       v-model="editedItem.name"
                       label="Product name"
@@ -68,6 +68,7 @@
                       v-validate="'required|decimal'"  
                       :error-messages="errors.collect('Stocks')"
                       data-vv-name="Stocks"
+                      readonly
                     ></v-text-field>
                      <v-select
                       v-model="editedItem.product_category"
@@ -79,15 +80,91 @@
                       v-validate="'required'"  
                       :error-messages="errors.collect('Product Category')"
                       data-vv-name="Product Category"
-                    ></v-select>
+                    ></v-select>  
+                  </v-col>
+                </v-row>
+                <v-row no-gutters style="border: 2px dashed gray;" class="pt-5 px-1">
+                  <v-col cols="2" class="text-center">
+                    <h4 class="ml-2">ADD</h4>
+                    <h4 class="ml-2">VARIANTS</h4>
+                  </v-col>
+                  <v-col cols="2">
                     <v-text-field
-                      v-model="editedItem.desc"
-                      label="Barcode"
-                      readonly
+                      v-model="sku"
+                      label="SKU"
+                      dense
                     ></v-text-field>
                   </v-col>
+                  <v-col cols="2">
+                    <v-select
+                      ref="size"
+                      v-model="size"
+                      :items="sizes"
+                      item-text="name"
+                      item-value="id"
+                      label="Sizes"
+                      flat
+                      solo
+                      dense
+                      class="py-0 my-0"
+                    ></v-select> 
+                  </v-col>
+                  <v-col cols="2">
+                    <v-select
+                      ref="color"
+                      v-model="color"
+                      :items="colors"
+                      item-text="name"
+                      item-value="id"
+                      label="Color"
+                      flat
+                      solo
+                      dense
+                      class="py-0 my-0"
+                    ></v-select> 
+                  </v-col>
+                  <v-col cols="2">
+                      <v-text-field
+                      style="width:70%;"
+                      v-model="stocks"
+                      label="Stocks"
+                      dense
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="2">
+                    <v-btn @click="addVariant" color="success" class=" white--text" outlined >
+                      add
+                      <v-icon right dark >
+                        mdi-check-circle
+                      </v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters class="pt-0 mt-0">
                   <v-col cols="12">
-                    <vue-barcode style="margin:auto; display:block; width:100%;" height="40" v-model="editedItem.desc"   fontOptions="bold"></vue-barcode>
+                    <v-simple-table dense class="mb-5" >
+                      <thead>
+                        <tr>
+                          <!-- <th class="text-left" style="width:50px;"></th> -->
+                          <th class="text-left pl-0">SKU</th>
+                          <th class="text-right mx-0">Price</th>
+                          <th class="text-right mx-0">Qty</th>
+                          <th class="text-right mx-0">Size</th>
+                          <th class="text-right mx-0">Color</th>
+                          <th class="text-right mx-0">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody >
+                        <tr  class="ml-0 pl-0 " v-for="item in variants" :key="item.index">
+                          <td class="text-left pl-0">{{ item.sku }}</td>
+                          <td class="text-right">{{ formatMoney(item.price) }}</td>
+                          <td class="text-right">{{ item.stocks }}</td>
+                          <td class="text-right">{{ item.size }}</td>
+                          <td class="text-right">{{ item.color }}</td>
+                          <td class="text-right"><v-icon @click="deleteVariant(item)" small color="error">mdi-delete</v-icon></td>
+                        </tr>
+                      </tbody>
+                    </v-simple-table>
                   </v-col>
                 </v-row>
               </v-container>
@@ -156,6 +233,17 @@
               <v-spacer></v-spacer>
               <v-btn color="blue darken-3" text @click="closeDelete">Cancel</v-btn>
               <v-btn color="blue darken-3" text @click="deleteItemConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-model="dialogDelete2" max-width="500px">
+          <v-card>
+            <v-card-title class="headline">Do you want to delete this Variant?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-3" text @click="dialogDelete2 = false">Cancel</v-btn>
+              <v-btn color="blue darken-3" text @click="deleteVariantConfirm">OK</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
@@ -256,8 +344,9 @@
 <script>
 import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct, apiGenerateBarcode} from "@/api/product.api";
 import {apiGetAllCategory} from "@/api/category.api";
+import {apiGetAllSizes} from "@/api/size.api";
+import {apiGetAllColors} from "@/api/color.api";
 import ImagePreviewMixin from "@/mixins/ImagePreviewMixin";
-import VueBarcode from 'vue-barcode';
 import FormatHelper from "@/mixins/FormatHelper"
 import PdfPreview from '@/components/features/PrintPreviewPdf'
 
@@ -265,12 +354,18 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     mixins: [ImagePreviewMixin,FormatHelper],
     name:'imageUpload',
     data: () => ({
+      stocks:'',
+      selectedStocks:'',
+      sku:'',
+      size:'',
+      color:'',
       previewDialogStatus: false,
       filename:'',
-      barcode:'',
       selected_id:'',
       bacodeDialog:false,
       items:[],
+      sizes:[],
+      colors:[],
       previewImage:require('@/assets/default.jpg'),
       search:'',
       snackbar:false,
@@ -278,6 +373,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
       text:'Successfully Saved!',
       dialog: false,
       dialogDelete: false,
+      dialogDelete2: false,
       barcodePaperSize:'A4',
       count:5,
       barcodeSettings:[{name:'A4', value:'A4'},{name:'Letter', value:'Letter'},{name:'Legal', value:'Legal'}, ],
@@ -297,8 +393,10 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         { text: 'Actions', value: 'actions', sortable: false },
       ],
       desserts: [],
+      variants:[],
       editedIndex: -1,
-      editedItem: {price:1,stocks:1,desc:''},
+      variantIndex: null,
+      editedItem: {price:1,stocks:0},
       defaultItem: {},
     }),
     computed: {
@@ -329,6 +427,12 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         apiGetAllCategory().then(({data}) =>{
           this.items=data
         })
+        apiGetAllSizes().then(({data}) =>{
+          this.sizes=data
+        })
+        apiGetAllColors().then(({data}) =>{
+          this.colors=data
+        })
       },
       editItem (item) {
         this.previewImage=require('@/assets/default.jpg')
@@ -338,6 +442,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           this.editedItem = data
           this.editedItem.product_category=data.category.id
           this.previewImage=`http://127.0.0.1:8000/images/${data.img}`
+          this.variants = data.sku
         })
       },
       deleteItem (item) {
@@ -386,6 +491,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           formData.set('stocks', this.editedItem.stocks)
           formData.set('product_category', this.editedItem.product_category)
           formData.append('_method', 'patch');
+          formData.append('variants', JSON.stringify(this.variants))
           apiUpdateProduct(formData,this.editedItem.id).then(() => {
             this.text ="Updated Successfully!"
             this.snackbar=true
@@ -395,8 +501,8 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           })
         } else {
           
-            this.$validator.validateAll().then(result => {
-              if (result){
+          this.$validator.validateAll().then(result => {
+            if (result){
                 const formData = new FormData
                 formData.set('image', this.editedItem.image)
                 formData.set('name', this.editedItem.name)
@@ -404,11 +510,13 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 formData.set('price', this.editedItem.price)
                 formData.set('stocks', this.editedItem.stocks)
                 formData.set('product_category', this.editedItem.product_category)
+                formData.append('variants', JSON.stringify(this.variants))
                 apiCreateProduct(formData).then(() => {
                   this.snackbar=true
                   this.tblLoader=true
                   this.close()
                   this.initialize()
+                  this.editedItem.stocks=0
                 })
               }
             });
@@ -426,8 +534,9 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         };
       },
       clear(){
-        this.editedItem.desc = Math.floor(1000000000 + Math.random() * 900000)
         this.previewImage=require('@/assets/default.jpg')
+        this.editedItem = {stocks:0}
+        this.variants =[]
       },
       showbarcodeDialog(item){
         this.bacodeDialog=true
@@ -440,11 +549,38 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           this.filename = 'preview.pdf'
           this.previewDialogStatus=true
         })
+      },
+      addVariant(){
+        if(this.sku && this.stocks && this.colors && this.sizes){
+          this.variants.push({
+            sku :  Math.floor(1000000000 + Math.random() * 900000),
+            stocks: this.stocks,
+            price: this.editedItem.price,
+            size: this.$refs.size.selectedItems[0].name,
+            color: this.$refs.color.selectedItems[0].name
+          })
+          this.editedItem.stocks = parseInt(this.editedItem.stocks) + parseInt(this.stocks)
+          this.stocks=''
+          this.sku=''
+          this.initialize()
+        }else{
+          alert('Please fill required fields!')
+        }
+      },
+      deleteVariant(item){
+        this.dialogDelete2 = true
+        this.variantIndex = this.variants.indexOf(item)
+        this.selectedStocks = item.stocks
+      },
+      deleteVariantConfirm(){
+        this.variants.splice(this.variantIndex, 1)
+         this.editedItem.stocks = this.editedItem.stocks - this.selectedStocks
+        this.dialogDelete2 = false
       }
        
     },
     components:{
-      VueBarcode,
+     
       PdfPreview
     }
   }

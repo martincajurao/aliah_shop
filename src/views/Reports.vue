@@ -96,7 +96,7 @@
                             </div>
                             <v-spacer></v-spacer>
                             <h2 class="mr-5">Total Sales: <v-chip color="info">{{formatMoney(total)}}</v-chip> </h2>
-                            <v-icon  class="mr-2 primary--text" @click="print()">
+                            <v-icon   class="mr-2 primary--text" @click="print()">
                                 mdi-printer
                             </v-icon>
                             <v-icon  @click="exportPdf(item)" class=" primary--text">
@@ -212,16 +212,94 @@
                     </v-card-text>
                     </v-card>
                 </v-tab-item>
-                <v-tab-item>
-                    <v-card flat>
-                    <v-card-text>
-                        <p>
-                        Fusce a quam. Phasellus nec sem in justo pellentesque facilisis. Nam eget dui. Proin viverra, ligula sit amet ultrices semper, ligula arcu tristique sapien, a accumsan nisi mauris ac eros. In dui magna, posuere eget, vestibulum et, tempor auctor, justo.
-                        </p>
 
-                        <p class="mb-0">
-                        Cras sagittis. Phasellus nec sem in justo pellentesque facilisis. Proin sapien ipsum, porta a, auctor quis, euismod ut, mi. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nam at tortor in tellus interdum sagittis.
-                        </p>
+                <!-- Assets############################################################# -->
+                <v-tab-item>
+                    <v-card flat min-width="1090" >
+                    <v-card-text  style="width:100%;">
+                        <v-row class="pa-4">
+                            <h2>Inventory Report</h2>
+                            <div style="width:230px; position:absolute; left:18%; top:1.8%;" >
+                                <v-menu
+                                v-model="fromDateMenu3"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="290px"
+                                >
+                                <template v-slot:activator="{ on }">
+                                    <v-text-field
+                                    label="From"
+                                    prepend-icon="event"
+                                    readonly
+                                    v-model="fromDateVal3"
+                                    v-on="on"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker
+                                    locale="en-in"
+                                    :min="minDate"
+                                    :max="maxDate"
+                                    v-model="fromDateVal3"
+                                    @input="searchAssets"
+
+                                ></v-date-picker>
+                                </v-menu>
+                            </div>
+                            <div style="width:230px; position:absolute; left:40%; top:2%;" >
+                                <v-menu
+                                v-model="toDateMenu3"
+                                :close-on-content-click="false"
+                                :nudge-right="40"
+                                transition="scale-transition"
+                                offset-y
+                                max-width="290px"
+                                min-width="290px"
+                                >
+                                <template v-slot:activator="{ on }">
+                                    <v-text-field
+                                    label="To"
+                                    prepend-icon="event"
+                                    readonly
+                                    v-model="toDateVal3"
+                                    v-on="on"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker
+                                    locale="en-in"
+                                    :min="fromDateVal3"
+                                    :max="maxDate"
+                                    v-model="toDateVal3"
+                                    @input="searchAssets"
+                                ></v-date-picker>
+                                </v-menu>
+                            </div>
+                            <v-spacer></v-spacer>
+                            <h2 class="mr-5">Total Assets Amount: <v-chip color="info">{{formatMoney(total3)}}</v-chip> </h2>
+                            <v-icon  class="mr-2 primary--text" @click="printAssets()">
+                                mdi-printer
+                            </v-icon>
+                            <v-icon  @click="exportPdf(item)" class=" primary--text">
+                                mdi-file-download
+                            </v-icon>
+                        </v-row>
+                        <v-data-table
+                        :headers="headers3"
+                        dense
+                        :items="assets"
+                        sort-by="name"
+                        class="elevation-1"
+                        >
+                       <template v-slot:item.created_at="{ item }">
+                        {{ format_date(item.created_at) }}
+                        </template>
+                        <template v-slot:item.amount="{ item }">
+                        {{ formatMoney(item.amount) }}
+                        </template>
+
+                        </v-data-table>
                     </v-card-text>
                     </v-card>
                 </v-tab-item>
@@ -234,6 +312,7 @@
 <script>
 import {apiGetAllTransactions, apiPrintSalesReport, apiSearchSalesReport} from "@/api/transaction.api";
 import {apiSearchExpensesReport,apiGetAllExpenses,apiPrintExpensesReport} from "@/api/expenses.api";
+import {apiSearchAssetsReport,apiGetAllAssets,apiPrintAssetsReport} from "@/api/product.api";
 import FormatHelper from "@/mixins/FormatHelper"
 import PdfPreview from '@/components/features/PrintPreviewPdf'
 
@@ -246,16 +325,22 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     toDateMenu: false,
     fromDateVal: null,
     toDateVal: null,
+    total:0,
     fromDateMenu2: false,
     toDateMenu2: false,
     fromDateVal2: null,
     toDateVal2: null,
-    total:0,
     total2:0,
+    fromDateMenu3: false,
+    toDateMenu3: false,
+    fromDateVal3: null,
+    toDateVal3: null,
+    total3:0,
     minDate: "2021-03-04",
     maxDate: new Date().toISOString().slice(0, 10),
     transactions:[],
     expenses:[],
+    assets:[],
     headers: [
         { text: 'Invoice #',sortable: false, value: 'invoice_no',},
         { text: 'Customer',sortable: false, value: 'client.name', },
@@ -265,6 +350,13 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     headers2: [
         { text: 'Subject',sortable: false, value: 'subject',},
         { text: 'Amount', sortable: false, value: 'amount' },
+        { text: 'Created at', sortable: false, value: 'created_at' },
+      ],
+    headers3: [
+        { text: 'Product Name',sortable: false, value: 'name',},
+        { text: 'Price', sortable: false, value: 'price' },
+        { text: 'Stocks', sortable: false, value: 'stocks' },
+        { text: 'Subtotal', sortable: false, value: 'subtotal' },
         { text: 'Created at', sortable: false, value: 'created_at' },
       ],
     }),
@@ -287,7 +379,15 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                     return x.amount
                 })
                 const total = data.reduce((a, b) => a + b, 0)
-                this.total = total
+                this.total2 = total
+            })
+            apiGetAllAssets().then(({data}) => {
+                this.assets = data
+                data = data.map(x => {
+                    return x.amount
+                })
+                const total = data.reduce((a, b) => a + b, 0)
+                this.total3 = total
             })
         },
         searchSale(){
@@ -320,6 +420,21 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 this.total2 = total
             })
         },
+        searchAssets(){
+            this.fromDateMenu2 = false
+            this.toDateMenu2 = false
+            if (this.toDateVal2 == null) {
+                this.toDateVal2 = new Date().toISOString().slice(0, 10)
+            }
+            apiSearchAssetsReport(this.fromDateVal2, this.toDateVal2).then(({data}) => {
+                this.expenses = data
+                data = data.map(x => {
+                    return x.amount
+                })
+                const total = data.reduce((a, b) => a + b, 0)
+                this.total2 = total
+            })
+        },
         print(){
             apiPrintSalesReport((
                 {
@@ -341,6 +456,25 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         },
         printExpenses(){
             apiPrintExpensesReport((
+                {
+                    data:this.expenses, 
+                    from:this.fromDateVal2, 
+                    to:this.toDateVal2,
+                    total:this.total2
+                }
+                )).then(response => {
+                this.filename = 'preview.pdf'
+                this.previewDialogStatus=true
+                this.errorMessage = ''
+                console.log(response)
+            }).catch(data=>{
+                console.log(data)
+            }).finally(data=>{
+                console.log(data)
+            })
+        },
+        printAssets(){
+            apiPrintAssetsReport((
                 {
                     data:this.expenses, 
                     from:this.fromDateVal2, 

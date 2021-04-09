@@ -166,7 +166,6 @@ import FormatHelper from "@/mixins/FormatHelper"
       },
  
       save () {
-        this.loader=true
         if (this.editedIndex > -1) {
           apiUpdateExpenses(this.editedItem,this.editedItem.id).then(() => {
             this.text ="Updated Successfully!"
@@ -178,8 +177,9 @@ import FormatHelper from "@/mixins/FormatHelper"
             this.initialize()
           })
         } else {
-            this.$validator.validateAll().then(result => {
-                if (result){
+          this.$validator.validateAll().then(result => {
+            if (result){
+                  this.loader=true
                     apiCreateExpenses(this.editedItem).then(() => {
                     this.snackbar=true
                     this.text ="Record saved Successfully!"
