@@ -34,11 +34,40 @@
                 
                 <v-card id="cards" v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
                   <v-img
-                  height="158"
+                  height="150"
                   :style="{backgroundSize: 'cover', backgroundPosition: 'center' }"                  
-                  :src="`http://127.0.0.1:8000/images/${item.img}`"
+                  :src="`http://127.0.0.1:8000/images/${item.product.img}`"
                   ></v-img>
-                 <h4 class="ml-3 mt-2">{{item.name}}</h4> 
+                 <h4 class="ml-3 mt-1 mb-0 dotdot">{{item.product.name}}</h4> 
+                  <!-- <v-select
+                      v-model="selected_variant"
+                      :items="item.sku"
+                      item-text="color" 
+                      item-value="id"
+                      label="Select Variant"
+                      dense
+                      style="height: 33px; font-weigth:9px !important;"
+                      flat
+                      solo
+                      class="pa-0 ma-0"
+                    >
+                    <template slot="selection" slot-scope="data">
+                      {{ data.item.color }} - {{ data.item.size }}
+                    </template>
+                    <template slot="item" slot-scope="data">
+                      {{ data.item.color }} - {{ data.item.size }}
+                    </template>
+                    </v-select> -->
+                
+                
+                <div class="px-3">
+                  <div style="width:50%; display:inline-block; font-size:12px;">
+                    <v-chip class="ma-0 py-0" small label>  <b>{{item.size}}</b> </v-chip>
+                  </div>
+                  <div style="width:50%; display:inline-block; text-align:right; font-size:12px;">
+                    <v-chip class="ma-0 py-0" small label>  <b>{{item.color}}</b> </v-chip>
+                  </div>
+                </div>
                 <div class="px-3">
                   <div style="width:50%; display:inline-block;">{{formatMoney(item.price)}}</div>
                   <div v-if="item.stocks > 5" style="color: green; width:50%; display:inline-block; text-align:right; font-size:12px;">Available: {{item.stocks}}</div>
@@ -60,8 +89,8 @@
                </v-row>
              </v-col>
              <v-col md="4" >
-              <v-card style="height:75vh;" class="mt-10 px-3 ">
-                <v-simple-table height="382">
+              <v-card style="height:79vh;" class="mt-10 px-3 ">
+                <v-simple-table height="409">
                     <thead>
                       <tr>
                         <!-- <th class="text-left" style="width:50px;"></th> -->
@@ -73,7 +102,7 @@
                     </thead>
                     <tbody style="height:60vh;">
                       <tr  class="ml-0 pl-0 " v-for="item in purchase" :key="item.name">
-                        <td colspan="2" class="text-left pl-0">{{ item.name }}</td>
+                        <td colspan="2" class="text-left pl-0"><small>{{ item.name }}</small></td>
                         <td class="text-right"><div style="width:48px; display:block;">{{ formatMoney(item.price) }}</div></td>
                         <td class="text-right">
                           <div style="width:60px;">
@@ -294,7 +323,7 @@
     </div>
 </template>
 <script>
-import {apiGetAllProducts,apiSearchProduct,apiSearchBarcode} from "@/api/product.api";
+import {apiGetFeaturedProducts,apiSearchProduct,apiSearchBarcode} from "@/api/product.api";
 import {apiGetAllClients} from "@/api/client.api";
 import {apiCreateTransaction} from "@/api/transaction.api";
 import { ModelSelect } from 'vue-search-select'
@@ -304,6 +333,7 @@ import FormatHelper from "@/mixins/FormatHelper"
 export default {
     mixins:[FormatHelper],
     data: () => ({
+      selected_variant:'',
       barcode:'',
       search:'',
       dialogx: false,
@@ -336,6 +366,7 @@ export default {
     }),
     mounted () {
       this.initialize()
+      
       console.log(this.$store.getters)
     },
     watch:{
@@ -346,18 +377,19 @@ export default {
     },
     methods:{
        initialize () {
-        apiGetAllProducts().then(({data}) => {
+        apiGetFeaturedProducts().then(({data}) => {
           this.products = data
           console.log(data,'products')
         })
         apiGetAllClients().then(({data}) => {
           data = data.map(({ id, name, phone }) => ({ value: id, text: name, phone: phone }));
           this.options = data
-          console.log(this.options,'options')
+          console.log(this.options,'clients')
         })
       },
       addToPurchase(val){
         console.log(val)
+        
         const isExist = this.productExists(val)
         const index = this.purchase.findIndex(purchase => purchase.id===val.id);
         if(isExist){
@@ -369,12 +401,15 @@ export default {
           this.purchase[index].subtotal = val.price * this.purchase[index].qty
           this.computeTotal()
         }else{
-        
+        // if (!this.selected_variant) {
+        //   alert('please select product variant')
+        //   return
+        // }
           let qty=1
           this.purchase.push({
             id : val.id,
-            img : val.img,
-            name : val.name,
+            img : val.product.img,
+            name : val.product.name+' ('+val.size+'-'+val.color+')',
             price : val.price,
             qty : 1,
             stocks : val.stocks,
@@ -382,6 +417,7 @@ export default {
           })
         }
           this.computeTotal()
+          this.selected_variant=''
       },
       
       decrement(val){
@@ -506,6 +542,11 @@ export default {
 #cards:hover{
    transition: all .3s ease;
    transform: translateY(-5px);
+}
+.dotdot{
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 </style>

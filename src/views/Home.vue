@@ -81,6 +81,29 @@
     </v-row>
   </v-layout>
   <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
+   <!-- loading dialog -->
+        <div class="text-center">
+        <v-dialog
+          v-model="loader"
+          hide-overlay
+          persistent
+          width="300"
+        >
+          <v-card
+            color="success"
+            dark
+          >
+            <v-card-text>
+              Loading please wait...
+              <v-progress-linear
+                indeterminate
+                color="white"
+                class="mb-0"
+              ></v-progress-linear>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+      </div>
   </div>
 </template>
 
@@ -100,6 +123,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
   export default {
     mixins:[FormatHelper],
     data: () => ({
+      loader:false,
       previewDialogStatus:false,
       filename:'',
       itemsPerPage: 5,
@@ -266,7 +290,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                     data: [data[1][0].total_sales]
                 }, 
                 {
-                    name: 'Total Assets',
+                    name: 'Remaining Assets',
                     data: [data[0][0].total_assets]
                 }, 
                 {
@@ -303,6 +327,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         })
       },
       print(item){
+        this.loader = true
         apiPrintReciept(({id:item.id})).then(response => {
             this.filename = 'preview.pdf'
             this.previewDialogStatus=true
@@ -312,6 +337,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
             console.log(data)
         }).finally(data=>{
             console.log(data)
+            this.loader = false
         })
       }
     

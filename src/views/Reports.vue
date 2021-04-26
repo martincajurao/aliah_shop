@@ -32,6 +32,12 @@
                     </v-icon>
                     Assets
                 </v-tab>
+                <v-tab>
+                    <v-icon left>
+                    mdi-file
+                    </v-icon>
+                    Inventory Sales
+                </v-tab>
 
                 <v-tab-item>
                     <v-card flat min-width="1090" >
@@ -218,8 +224,46 @@
                     <v-card flat min-width="1090" >
                     <v-card-text  style="width:100%;">
                         <v-row class="pa-4">
-                            <h2>Inventory Report</h2>
-                            <div style="width:230px; position:absolute; left:18%; top:1.8%;" >
+                            <h2>Assets Inventory Report</h2>
+                           
+                            <v-spacer></v-spacer>
+                            <h2 class="mr-5">Total Assets Amount: <v-chip color="info">{{formatMoney(total3)}}</v-chip> </h2>
+                            <v-icon  class="mr-2 primary--text" @click="printAssets()">
+                                mdi-printer
+                            </v-icon>
+                            <v-icon  @click="exportPdf(item)" class=" primary--text">
+                                mdi-file-download
+                            </v-icon>
+                        </v-row>
+                        <v-data-table
+                        :headers="headers3"
+                        dense
+                        :items="assets"
+                        sort-by="name"
+                        class="elevation-1"
+                        >
+                       <template v-slot:item.created_at="{ item }">
+                        {{ format_date(item.created_at) }}
+                        </template>
+                        <template v-slot:item.price="{ item }">
+                        {{ formatMoney(item.price) }}
+                        </template>
+                        <template v-slot:item.subtotal="{ item }">
+                        {{ formatMoney(item.price * item.stocks) }}
+                        </template>
+
+                        </v-data-table>
+                    </v-card-text>
+                    </v-card>
+                </v-tab-item>
+               
+                <!-- Assets Sales############################################################# -->
+                <v-tab-item>
+                    <v-card flat min-width="1090" >
+                    <v-card-text  style="width:100%;">
+                        <v-row class="pa-4">
+                            <h2>Sales Inventory</h2>
+                           <div style="width:230px; position:absolute; left:18%; top:1.8%;" >
                                 <v-menu
                                 v-model="fromDateMenu3"
                                 :close-on-content-click="false"
@@ -243,7 +287,7 @@
                                     :min="minDate"
                                     :max="maxDate"
                                     v-model="fromDateVal3"
-                                    @input="searchAssets"
+                                    @input="searchAssetsSales"
 
                                 ></v-date-picker>
                                 </v-menu>
@@ -272,13 +316,13 @@
                                     :min="fromDateVal3"
                                     :max="maxDate"
                                     v-model="toDateVal3"
-                                    @input="searchAssets"
+                                    @input="searchAssetsSales"
                                 ></v-date-picker>
                                 </v-menu>
                             </div>
                             <v-spacer></v-spacer>
-                            <h2 class="mr-5">Total Assets Amount: <v-chip color="info">{{formatMoney(total3)}}</v-chip> </h2>
-                            <v-icon  class="mr-2 primary--text" @click="printAssets()">
+                            <h2 class="mr-5">Total Sales: <v-chip color="info">{{formatMoney(total4)}}</v-chip> </h2>
+                            <v-icon  class="mr-2 primary--text" @click="printAssetsSales()">
                                 mdi-printer
                             </v-icon>
                             <v-icon  @click="exportPdf(item)" class=" primary--text">
@@ -286,39 +330,72 @@
                             </v-icon>
                         </v-row>
                         <v-data-table
-                        :headers="headers3"
+                        :headers="headers4"
                         dense
-                        :items="assets"
+                        :items="assetsSales"
                         sort-by="name"
                         class="elevation-1"
                         >
                        <template v-slot:item.created_at="{ item }">
                         {{ format_date(item.created_at) }}
                         </template>
-                        <template v-slot:item.amount="{ item }">
-                        {{ formatMoney(item.amount) }}
+                        <template v-slot:item.price="{ item }">
+                        {{ formatMoney(item.price) }}
+                        </template>
+                        <template v-slot:item.subtotal="{ item }">
+                        {{ formatMoney(item.price * item.qty) }}
                         </template>
 
                         </v-data-table>
                     </v-card-text>
                     </v-card>
                 </v-tab-item>
-                </v-tabs>
-
+            </v-tabs>
         </v-card>
     </div>
+     <!-- loading dialog -->
+        <div class="text-center">
+        <v-dialog
+          v-model="loader"
+          hide-overlay
+          persistent
+          width="300"
+        >
+          <v-card
+            color="success"
+            dark
+          >
+            <v-card-text>
+              Loading please wait...
+              <v-progress-linear
+                indeterminate
+                color="white"
+                class="mb-0"
+              ></v-progress-linear>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+      </div>
 </div>
 </template>
 <script>
 import {apiGetAllTransactions, apiPrintSalesReport, apiSearchSalesReport} from "@/api/transaction.api";
 import {apiSearchExpensesReport,apiGetAllExpenses,apiPrintExpensesReport} from "@/api/expenses.api";
-import {apiSearchAssetsReport,apiGetAllAssets,apiPrintAssetsReport} from "@/api/product.api";
+import {
+    apiSearchAssetsReport,
+    apiSearchAssetsSalesReport,
+    apiGetAllAssets,
+    apiPrintAssetsReport,
+    apiPrintAssetsSalesReport,
+    apiGetAllAssetsSales
+} from "@/api/product.api";
 import FormatHelper from "@/mixins/FormatHelper"
 import PdfPreview from '@/components/features/PrintPreviewPdf'
 
   export default {
     mixins:[FormatHelper],
     data: () => ({
+    loader:false,
     previewDialogStatus: false,
     filename:'',
     fromDateMenu: false,
@@ -336,11 +413,13 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     fromDateVal3: null,
     toDateVal3: null,
     total3:0,
+    total4:0,
     minDate: "2021-03-04",
     maxDate: new Date().toISOString().slice(0, 10),
     transactions:[],
     expenses:[],
     assets:[],
+    assetsSales:[],
     headers: [
         { text: 'Invoice #',sortable: false, value: 'invoice_no',},
         { text: 'Customer',sortable: false, value: 'client.name', },
@@ -353,11 +432,20 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         { text: 'Created at', sortable: false, value: 'created_at' },
       ],
     headers3: [
-        { text: 'Product Name',sortable: false, value: 'name',},
+        { text: 'Product Name',sortable: false, value: 'product.name',},
+        { text: 'Size', sortable: false, value: 'size' },
+        { text: 'Color', sortable: false, value: 'color' },
         { text: 'Price', sortable: false, value: 'price' },
         { text: 'Stocks', sortable: false, value: 'stocks' },
         { text: 'Subtotal', sortable: false, value: 'subtotal' },
         { text: 'Created at', sortable: false, value: 'created_at' },
+      ],
+    headers4: [
+        { text: 'Product w/ Variant',sortable: true, value: 'name',},
+        { text: 'Price', sortable: false, value: 'price' },
+        { text: 'Qty', sortable: false, value: 'qty' },
+        { text: 'Subtotal', sortable: false, value: 'subtotal' },
+        { text: 'Created at', sortable: true, value: 'created_at' },
       ],
     }),
     mounted(){
@@ -384,10 +472,18 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
             apiGetAllAssets().then(({data}) => {
                 this.assets = data
                 data = data.map(x => {
-                    return x.amount
+                    return x.price * x.stocks
                 })
                 const total = data.reduce((a, b) => a + b, 0)
                 this.total3 = total
+            })
+            apiGetAllAssetsSales().then(({data}) => {
+                this.assetsSales = data
+                data = data.map(x => {
+                    return x.price * x.qty
+                })
+                const total = data.reduce((a, b) => a + b, 0)
+                this.total4 = total
             })
         },
         searchSale(){
@@ -435,7 +531,23 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 this.total2 = total
             })
         },
+        searchAssetsSales(){
+            this.fromDateMenu3 = false
+            this.toDateMenu3 = false
+            if (this.toDateVal3 == null) {
+                this.toDateVal3 = new Date().toISOString().slice(0, 10)
+            }
+            apiSearchAssetsSalesReport(this.fromDateVal3, this.toDateVal3).then(({data}) => {
+                this.assetsSales = data
+                data = data.map(x => {
+                    return x.price * x.qty
+                })
+                const total = data.reduce((a, b) => a + b, 0)
+                this.total4 = total
+            })
+        },
         print(){
+            this.loader = true
             apiPrintSalesReport((
                 {
                     data:this.transactions, 
@@ -452,9 +564,11 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 console.log(data)
             }).finally(data=>{
                 console.log(data)
+                this.loader = false
             })
         },
         printExpenses(){
+            this.loader = true
             apiPrintExpensesReport((
                 {
                     data:this.expenses, 
@@ -471,17 +585,19 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 console.log(data)
             }).finally(data=>{
                 console.log(data)
+                this.loader = false
             })
         },
         printAssets(){
-            apiPrintAssetsReport((
+            this.loader = true
+            apiPrintAssetsReport(
                 {
-                    data:this.expenses, 
-                    from:this.fromDateVal2, 
-                    to:this.toDateVal2,
-                    total:this.total2
+                    data:this.assets, 
+                    from:this.fromDateVal3, 
+                    to:this.toDateVal3,
+                    total:this.total3
                 }
-                )).then(response => {
+                ).then(response => {
                 this.filename = 'preview.pdf'
                 this.previewDialogStatus=true
                 this.errorMessage = ''
@@ -490,6 +606,28 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 console.log(data)
             }).finally(data=>{
                 console.log(data)
+                this.loader = false
+            })
+        },
+        printAssetsSales(){
+            this.loader = true
+            apiPrintAssetsSalesReport(
+                {
+                    data:this.assetsSales, 
+                    from:this.fromDateVal3, 
+                    to:this.toDateVal3,
+                    total:this.total4
+                }
+                ).then(response => {
+                this.filename = 'preview.pdf'
+                this.previewDialogStatus=true
+                this.errorMessage = ''
+                console.log(response)
+            }).catch(data=>{
+                console.log(data)
+            }).finally(data=>{
+                console.log(data)
+                this.loader = false
             })
         },
 

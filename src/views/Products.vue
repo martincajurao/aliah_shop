@@ -61,14 +61,16 @@
                       v-validate="'required|decimal'"  
                       :error-messages="errors.collect('price')"
                       data-vv-name="price"
+                      type="number"
                     ></v-text-field>
                     <v-text-field
                       v-model="editedItem.stocks"
                       label="Stocks"
-                      v-validate="'required|decimal'"  
+                      v-validate="'required|numeric|min_value:1'"  
                       :error-messages="errors.collect('Stocks')"
                       data-vv-name="Stocks"
                       readonly
+                      type="number"
                     ></v-text-field>
                      <v-select
                       v-model="editedItem.product_category"
@@ -129,6 +131,7 @@
                       v-model="stocks"
                       label="Stocks"
                       dense
+                      type="number"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="2">
@@ -161,7 +164,10 @@
                           <td class="text-right">{{ item.stocks }}</td>
                           <td class="text-right">{{ item.size }}</td>
                           <td class="text-right">{{ item.color }}</td>
-                          <td class="text-right"><v-icon @click="deleteVariant(item)" small color="error">mdi-delete</v-icon></td>
+                          <td class="text-right">
+                            <v-icon @click="EditVariant(item)" small color="info">mdi-tag-plus</v-icon>
+                            <v-icon @click="deleteVariant(item)" small color="error">mdi-delete</v-icon>
+                          </td>
                         </tr>
                       </tbody>
                     </v-simple-table>
@@ -172,7 +178,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" outlined text @click="close"> Cancel</v-btn>
-              <v-btn color="info" @click="save" >Save</v-btn>
+              <v-btn color="info" :loading="loader" @click="save" >Save</v-btn>
             </v-card-actions>
           </v-form>
           </v-card>
@@ -194,6 +200,7 @@
     :headers="headers"
     :items="desserts"
     :search="search"
+    fixed-header
     sort-by="name"
     class="elevation-1"
     :loading="tblLoader"
@@ -271,12 +278,12 @@
     <v-snackbar
       v-model="snackbar"
       color="green darken-3"
-      width="100%"
+      width="60%"
       class="px-5"
-      max-width="100%"
+      max-width="60%"
       tile
       app
-      
+      style="font-weight:bold;"
     >
       {{ text }}
       <template v-slot:action="{ attrs }">
@@ -339,6 +346,60 @@
         </v-card>
       </v-dialog>
     </div>
+    <!-- edit varaint dilaog -->
+        <v-row justify="center">
+          <v-dialog
+            v-model="vdialog"
+            max-width="350"
+          >
+            <v-card>
+              <v-card-title class="headline">
+                Add Variant Stocks
+              </v-card-title>
+              <v-card-text>
+                Product SKU: <b>{{edited_variant_sku}}</b>
+                <br>
+                <br>
+              <label>Quantity</label>
+                <v-text-field
+                solo
+                dense
+                v-model="edited_variant_stocks"
+                placeholder="stocks to be added"
+                autofocus
+                type="number"
+                >
+                </v-text-field>
+                <label>(if want to update Price)</label>
+                <v-text-field
+                solo
+                dense
+                v-model="edited_variant_price"
+                placeholder="Price"
+                type="number"
+                >
+                </v-text-field>
+                
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                  color="info"
+                  outlined
+                  @click="vdialog = false"
+                >
+                  cancel
+                </v-btn>
+                <v-btn
+                  color="info"
+                  @click="updateVariant"
+                >
+                  ADD
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-row>
   </div>
 </template>
 <script>
@@ -354,6 +415,10 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     mixins: [ImagePreviewMixin,FormatHelper],
     name:'imageUpload',
     data: () => ({
+      edited_variant_index:'',
+      edited_variant_stocks:'',
+      edited_variant_price:'',
+      edited_variant_sku:'',
       stocks:'',
       selectedStocks:'',
       sku:'',
@@ -372,6 +437,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
       tblLoader:true,
       text:'Successfully Saved!',
       dialog: false,
+      vdialog: false,
       dialogDelete: false,
       dialogDelete2: false,
       barcodePaperSize:'A4',
@@ -492,10 +558,12 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           formData.set('product_category', this.editedItem.product_category)
           formData.append('_method', 'patch');
           formData.append('variants', JSON.stringify(this.variants))
+          this.loader = true
           apiUpdateProduct(formData,this.editedItem.id).then(() => {
             this.text ="Updated Successfully!"
             this.snackbar=true
             this.tblLoader=true
+            this.loader = false
             this.close()
             this.initialize()
           })
@@ -511,9 +579,11 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 formData.set('stocks', this.editedItem.stocks)
                 formData.set('product_category', this.editedItem.product_category)
                 formData.append('variants', JSON.stringify(this.variants))
+                this.loader = true
                 apiCreateProduct(formData).then(() => {
                   this.snackbar=true
                   this.tblLoader=true
+                  this.loader = false
                   this.close()
                   this.initialize()
                   this.editedItem.stocks=0
@@ -551,6 +621,11 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         })
       },
       addVariant(){
+        if(this.editedItem.price==null) {
+          alert('Product price is empty!')
+          return
+        } 
+          
         if(this.sku && this.stocks && this.colors && this.sizes){
           this.variants.push({
             sku :  Math.floor(1000000000 + Math.random() * 900000),
@@ -576,7 +651,20 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         this.variants.splice(this.variantIndex, 1)
          this.editedItem.stocks = this.editedItem.stocks - this.selectedStocks
         this.dialogDelete2 = false
-      }
+      },
+      EditVariant(item){
+        this.edited_variant_stocks = null
+        this.vdialog = true
+        this.edited_variant_price = item.price
+        this.edited_variant_sku = item.sku
+        this.edited_variant_index = this.variants.indexOf(item)
+      },
+      updateVariant(){
+        this.variants[this.edited_variant_index].stocks += parseInt(this.edited_variant_stocks) | 0
+        this.variants[this.edited_variant_index].price = this.edited_variant_price
+        this.editedItem.stocks +=  parseInt(this.edited_variant_stocks) | 0
+        this.vdialog = false
+      },
        
     },
     components:{
@@ -593,6 +681,11 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
 }
  .uploading-image{
      display:flex;
-   }
+}
+.text-hidden{
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 </style>
