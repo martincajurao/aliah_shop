@@ -355,19 +355,18 @@ export default {
         { text: 'Price', value: 'price' },
       ],
       options: [],
-        item: {
-          value: '',
-          name: '',
-          phone: '',
-          amount: '',
-          purchase:[],
-        },
+      item: {
+        value: '',
+        name: '',
+        phone: '',
+        amount: '',
+        purchase:[],
+      },
      
     }),
     mounted () {
-      this.initialize()
       
-      console.log(this.$store.getters)
+      this.initialize()
     },
     watch:{
       item(val){
@@ -377,6 +376,7 @@ export default {
     },
     methods:{
        initialize () {
+        
         apiGetFeaturedProducts().then(({data}) => {
           this.products = data
           console.log(data,'products')
@@ -449,6 +449,13 @@ export default {
       reset(){
         this.purchase=[]
         this.total=0
+        this.item= {
+          value: '',
+          name: '',
+          phone: '',
+          amount: 0,
+          purchase:[],
+        }
       },
       save(){
         this.$validator.validateAll().then(result => {
@@ -457,6 +464,7 @@ export default {
             this.loader=true
             this.item.cash = parseInt(this.cash)
             this.change = this.cash - this.total
+            this.item.amount = this.total
             apiCreateTransaction(this.item).then(() => {
               this.snackbar=true
               this.showSelectClient=false,
@@ -466,8 +474,10 @@ export default {
               this.dialogx = true
               this.$refs.form.reset()
               this.$store.commit('change', Date())
+              this.$forceUpdate();
             }).finally(data =>{
               this.loader=false
+              this.item.value=""
               console.log(data)
             })
           }
@@ -507,6 +517,8 @@ export default {
             phone: '',
             amount: '',
             purchase:[],
+
+
           }
       },
       checkPaymentDialog(){
