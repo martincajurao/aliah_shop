@@ -71,6 +71,7 @@
                       data-vv-name="Stocks"
                       readonly
                       type="number"
+                      v-show="false"
                     ></v-text-field>
                      <v-select
                       v-model="editedItem.product_category"

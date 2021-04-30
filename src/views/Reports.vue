@@ -443,9 +443,8 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
     headers4: [
         { text: 'Product w/ Variant',sortable: true, value: 'name',},
         { text: 'Price', sortable: false, value: 'price' },
-        { text: 'Qty', sortable: false, value: 'qty' },
+        { text: 'Sold', sortable: false, value: 'qty' },
         { text: 'Subtotal', sortable: false, value: 'subtotal' },
-        { text: 'Created at', sortable: true, value: 'created_at' },
       ],
     }),
     mounted(){
