@@ -1,5 +1,6 @@
 <template>
-  <v-app style="-webkit-app-region: drag">
+<div>
+  <v-app v-if="user != ''" style="-webkit-app-region: drag">
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant.sync="mini"
@@ -90,7 +91,9 @@
         <span class="hidden-sm-and-down">Inventory System</span> <v-icon @click="refresh" color="success">mdi-refresh</v-icon>
       </v-toolbar-title>
       <v-spacer />
-      <v-btn icon   class="clickable">
+      
+      <h4 style="color:white;">{{user}}</h4>
+      <v-btn icon @click="logout()"   class="clickable">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
@@ -158,15 +161,73 @@
           <Pos ref="init"  />
       </v-card>
     </v-dialog>
-    
   </v-row>
   </v-app>
+  
+  <div class="container-fluid  loginReg"  v-if="user==''">
+    <v-app >
+    <v-content>
+      <v-container class="fill-height loginReg" fluid>
+        <v-row align="center" justify="center">
+          <v-col cols="5"  md="5">
+            <v-card class="elevation-12">
+              <v-window >
+                <v-window-item :value="1">
+                  <v-row>
+                    <v-col cols="6" md="12">
+                      <v-card-text class="mt-12">
+                        <h1
+                          class="text-center display-2 teal--text text--accent-3"
+                        >Login your account</h1>
+                        
+                        <h4 class="text-center mt-4">Ensure your email for registration</h4>
+                        <v-form>
+                          <v-text-field
+                            label="Email"
+                            name="Email"
+                            prepend-icon="email"
+                            type="text"
+                            color="teal accent-3"
+                            v-model="email"
+                          />
+
+                          <v-text-field
+                            id="password"
+                            label="Password"
+                            name="password"
+                            prepend-icon="lock"
+                            type="password"
+                            color="teal accent-3"
+                            v-model="password"
+                          />
+                          <div class="error--text" style="text-align:center;">
+                            <span  v-if="error">{{error}}</span>
+                          </div>
+                        </v-form>
+                      </v-card-text>
+                      <div class="text-center mt-0 mb-8">
+                        <v-btn @click="exit()"  rounded outlined color="teal accent-3" class="px-15 mr-5" dark>exit</v-btn>
+                        <v-btn @click="login()" rounded color="teal accent-3" class="px-15" dark>LOG IN</v-btn>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-window-item>
+              </v-window>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-content>
+  </v-app>
+  </div>
+</div>
 </template>
 
 <script>
 //import * as auth from '../services/auth_service'
 import FormatHelper from '@/mixins/FormatHelper'
 import {apiTodaysSale} from '@/api/transaction.api'
+import {apiLogin} from '@/api/auth.api'
 import Pos from '@/views/Pos'
   export default {
     mixins:[FormatHelper],
@@ -174,6 +235,10 @@ import Pos from '@/views/Pos'
       source: String,
     },
     data: () => ({
+    user:'',
+    email:'martincajurao@gmail.com',
+    password:'ichiberry964',
+    error:'',
     todaysExpense:'',
     todaysSale:'',
     dialog: false,
@@ -201,7 +266,7 @@ import Pos from '@/views/Pos'
           model: false,
           children: [
         { icon: 'mdi-account-multiple', text: 'Clients', route:'/clients'},
-        { icon: 'mdi-account-multiple-outline', text: 'Employee', route:'/employee' },
+        { icon: 'mdi-account-multiple-outline', text: 'User Accounts', route:'/user_account' },
           ],
         },
         { icon: 'mdi-finance', text: 'Expenses', route:'/expenses' },
@@ -251,6 +316,24 @@ import Pos from '@/views/Pos'
         // this.$refs.init.initialize()
         // this.$store.commit('change', Date())
         // this.initialize()
+      },
+      login(){
+        apiLogin({email:this.email, password:this.password}).then(({data}) => {
+          this.user = data.user.name
+          this.$session.start()
+          this.$session.set('token', data.token)
+          console.log(this.$session.getAll())
+        }).catch(({response}) => {
+            this.error = response.data.message
+            console.log(response)
+        })
+      },
+      logout(){
+        this.user = ''
+        this.$session.destroy()
+      },
+      exit(){
+        window.close()
       }
     },
     components:{
@@ -287,5 +370,14 @@ padding: 0;
 /* .slide-fade-leave-active below version 2.1.8 */ {
   transform: translateX(150px);
   opacity: 0;
+}
+.loginReg{
+height:100vh;
+width:105%;
+background-image: url('./assets/bg.jpg');
+background-repeat: no-repeat;
+background-attachment: fixed;
+background-position: center;
+background-size: cover;
 }
 </style>
