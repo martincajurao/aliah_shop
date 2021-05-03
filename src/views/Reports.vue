@@ -1,5 +1,5 @@
 <template  >
-<div>
+<div  >
   <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
     <div class="mx-3 pt-2" >
         <v-card>

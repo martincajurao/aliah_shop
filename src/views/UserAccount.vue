@@ -1,5 +1,5 @@
 <template>
-<div class="container mx-3 clickable">
+<div class="container mx-3 clickable" v-if="$store.getters.user.access_level < 2">
   
   <v-card-title>
       <h3>User Accounts</h3>

@@ -41,6 +41,11 @@ Vue.use(VueRouter)
     name: 'reports',
     component: () => import(/* webpackChunkName: "products" */ '../views/Reports.vue')
   },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import(/* webpackChunkName: "products" */ '../views/Settings.vue')
+  },
 ]
 
 const router = new VueRouter({

@@ -11,9 +11,9 @@
     >
     <v-list-item class="px-2 pt-1">
         <v-list-item-avatar>
-            <v-img src="./assets/watch.png" alt="admin" class="mx-auto" />
+            <v-img :src="require(`./assets/${store.img}`)" alt="admin" class="mx-auto" />
         </v-list-item-avatar>
-        <v-list-item-title class="ml-4 text-capitalize">Aliah Shop</v-list-item-title>
+        <v-list-item-title class="ml-4 text-capitalize">{{store.name}}</v-list-item-title>
     </v-list-item>
       <v-list shaped  class="clickable">
         <template v-for="item in items">
@@ -88,7 +88,7 @@
         style="width: 300px"
         class="ml-0 pl-4"
       >
-        <span class="hidden-sm-and-down">Inventory System</span> <v-icon @click="refresh" color="success">mdi-refresh</v-icon>
+        <span class="hidden-sm-and-down">{{store.title}}</span> <v-icon @click="refresh" color="success">mdi-refresh</v-icon>
       </v-toolbar-title>
       <v-spacer />
       
@@ -199,6 +199,7 @@
                             type="password"
                             color="teal accent-3"
                             v-model="password"
+                            @keydown.enter="login()"
                           />
                           <div class="error--text" style="text-align:center;">
                             <span  v-if="error">{{error}}</span>
@@ -227,7 +228,7 @@
 //import * as auth from '../services/auth_service'
 import FormatHelper from '@/mixins/FormatHelper'
 import {apiTodaysSale} from '@/api/transaction.api'
-import {apiLogin} from '@/api/auth.api'
+import {apiLogin, apiGetStoreSettings} from '@/api/auth.api'
 import Pos from '@/views/Pos'
   export default {
     mixins:[FormatHelper],
@@ -235,9 +236,10 @@ import Pos from '@/views/Pos'
       source: String,
     },
     data: () => ({
+    store:{},
     user:'',
-    email:'martincajurao@gmail.com',
-    password:'ichiberry964',
+    email:'admin',
+    password:'adminx',
     error:'',
     todaysExpense:'',
     todaysSale:'',
@@ -265,13 +267,13 @@ import Pos from '@/views/Pos'
           text: 'Users',
           model: false,
           children: [
-        { icon: 'mdi-account-multiple', text: 'Clients', route:'/clients'},
+        { icon: 'mdi-account-multiple', text: 'Customers', route:'/clients'},
         { icon: 'mdi-account-multiple-outline', text: 'User Accounts', route:'/user_account' },
           ],
         },
         { icon: 'mdi-finance', text: 'Expenses', route:'/expenses' },
         { icon: 'mdi-file-chart', text: 'reports', route:'/reports' },
-        { icon: 'mdi-cog', text: 'Settings', route:'/Settings' },
+        { icon: 'mdi-cog', text: 'Settings', route:'/settings' },
       ],
     }),
   
@@ -295,6 +297,10 @@ import Pos from '@/views/Pos'
             this.todaysSale = data[0][0].total
             this.todaysExpense = data[1][0].total_expenses
             console.log(data,'todays')
+        })
+        apiGetStoreSettings().then(({data}) => {
+            console.log(data[0],'store')
+            this.store = data[0]
         })
       },
 
@@ -320,9 +326,8 @@ import Pos from '@/views/Pos'
       login(){
         apiLogin({email:this.email, password:this.password}).then(({data}) => {
           this.user = data.user.name
-          this.$session.start()
-          this.$session.set('token', data.token)
-          console.log(this.$session.getAll())
+          this.$store.commit('setUser', data.user)
+          console.log( this.$store.getters.user)
         }).catch(({response}) => {
             this.error = response.data.message
             console.log(response)

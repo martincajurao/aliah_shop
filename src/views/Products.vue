@@ -1,5 +1,5 @@
 <template>
-<div class="container mx-3 clickable">
+<div class="container mx-3 clickable" v-if="$store.getters.user.access_level < 2">
   <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
   <v-card-title>
       <h3>Products</h3>
