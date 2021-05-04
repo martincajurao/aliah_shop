@@ -517,11 +517,11 @@ export default {
             phone: '',
             amount: '',
             purchase:[],
-
-
           }
+          this.$validator.reset()
       },
       checkPaymentDialog(){
+        this.$validator.reset()
         if (this.total>0) {
           this.paymentDialog = true
         }

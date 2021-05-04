@@ -10,8 +10,8 @@
       app
     >
     <v-list-item class="px-2 pt-1">
-        <v-list-item-avatar>
-            <v-img :src="require(`./assets/${store.img}`)" alt="admin" class="mx-auto" />
+        <v-list-item-avatar >
+            <v-img :src="`http://127.0.0.1:8000/images/${store.img}`" alt="admin" class="mx-auto" />
         </v-list-item-avatar>
         <v-list-item-title class="ml-4 text-capitalize">{{store.name}}</v-list-item-title>
     </v-list-item>
@@ -169,7 +169,7 @@
     <v-content>
       <v-container class="fill-height loginReg" fluid>
         <v-row align="center" justify="center">
-          <v-col cols="5"  md="5">
+          <v-col cols="4"  md="4">
             <v-card class="elevation-12">
               <v-window >
                 <v-window-item :value="1">
@@ -178,9 +178,9 @@
                       <v-card-text class="mt-12">
                         <h1
                           class="text-center display-2 teal--text text--accent-3"
-                        >Login your account</h1>
+                        >Login account</h1>
                         
-                        <h4 class="text-center mt-4">Ensure your email for registration</h4>
+                        <h4 class="text-center mt-4">Ensure your account credentials</h4>
                         <v-form>
                           <v-text-field
                             label="Email"
@@ -317,10 +317,10 @@ import Pos from '@/views/Pos'
         this.$refs.init.initialize()
       },
       refresh(){
-        location.reload();
-        // this.$forceUpdate();
+        // location.reload();
+        this.$forceUpdate();
+        this.$store.commit('change', Date())
         // this.$refs.init.initialize()
-        // this.$store.commit('change', Date())
         // this.initialize()
       },
       login(){

@@ -452,10 +452,8 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           sortable: false,
           value: 'name',
         },
-        { text: 'Barcode', value: 'desc' },
         { text: 'Category', value: 'category.name' },
         { text: 'Price', value: 'price' },
-        { text: 'Stocks', value: 'stocks' },
         { text: 'Date Created', value: 'created_at' },
         { text: 'Actions', value: 'actions', sortable: false },
       ],
@@ -567,6 +565,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
             this.loader = false
             this.close()
             this.initialize()
+            
           })
         } else {
           
@@ -608,6 +607,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         this.previewImage=require('@/assets/default.jpg')
         this.editedItem = {stocks:0}
         this.variants =[]
+        this.$validator.reset()
       },
       showbarcodeDialog(item){
         this.bacodeDialog=true
