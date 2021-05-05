@@ -208,7 +208,7 @@
                       </v-card-text>
                       <div class="text-center mt-0 mb-8">
                         <v-btn @click="exit()"  rounded outlined color="teal accent-3" class="px-15 mr-5" dark>exit</v-btn>
-                        <v-btn @click="login()" rounded color="teal accent-3" class="px-15" dark>LOG IN</v-btn>
+                        <v-btn @click="login()" :loading="loader" rounded color="teal accent-3" class="px-15" dark>LOG IN</v-btn>
                       </div>
                     </v-col>
                   </v-row>
@@ -324,13 +324,17 @@ import Pos from '@/views/Pos'
         // this.initialize()
       },
       login(){
+        this.loader = true
         apiLogin({email:this.email, password:this.password}).then(({data}) => {
           this.user = data.user.name
           this.$store.commit('setUser', data.user)
           console.log( this.$store.getters.user)
+          this.loader = false
         }).catch(({response}) => {
             this.error = response.data.message
             console.log(response)
+        }).finally( () =>{
+          this.loader = false
         })
       },
       logout(){

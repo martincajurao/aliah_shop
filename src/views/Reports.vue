@@ -242,6 +242,15 @@
                         sort-by="name"
                         class="elevation-1"
                         >
+                         <template v-slot:item.stocks="{ item }">
+                            <v-chip
+                            small 
+                            outlined
+                            :color="getColor(item.stocks)" 
+                            >
+                            {{ item.stocks }}
+                            </v-chip>
+                        </template>
                        <template v-slot:item.created_at="{ item }">
                         {{ format_date(item.created_at) }}
                         </template>
@@ -345,6 +354,7 @@
                         <template v-slot:item.subtotal="{ item }">
                         {{ formatMoney(item.price * item.qty) }}
                         </template>
+                       
 
                         </v-data-table>
                     </v-card-text>
@@ -424,7 +434,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
         { text: 'Invoice #',sortable: false, value: 'invoice_no',},
         { text: 'Customer',sortable: false, value: 'client.name', },
         { text: 'Amount', sortable: false, value: 'amount' },
-        { text: 'Created at', sortable: false, value: 'created_at' },
+        { text: 'Created at', sortable: true, value: 'created_at' },
       ],
     headers2: [
         { text: 'Subject',sortable: false, value: 'subject',},
@@ -433,10 +443,10 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
       ],
     headers3: [
         { text: 'Product Name',sortable: false, value: 'product.name',},
-        { text: 'Size', sortable: false, value: 'size' },
-        { text: 'Color', sortable: false, value: 'color' },
+        { text: 'Size', sortable: true, value: 'size' },
+        { text: 'Color', sortable: true, value: 'color' },
         { text: 'Price', sortable: false, value: 'price' },
-        { text: 'Stocks', sortable: false, value: 'stocks' },
+        { text: 'Stocks', sortable: true, value: 'stocks' },
         { text: 'Subtotal', sortable: false, value: 'subtotal' },
         { text: 'Created at', sortable: false, value: 'created_at' },
       ],
@@ -628,6 +638,11 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
                 console.log(data)
                 this.loader = false
             })
+        },
+        getColor (val) {
+            if (val < 1) return 'red'
+            else if (val < 5) return 'orange'
+            else return 'green'
         },
 
     },

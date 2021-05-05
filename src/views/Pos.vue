@@ -340,8 +340,8 @@ export default {
       loader:false,
       paymentDialog:false,
       text:'',
-      isNewClient:true,
       snackbar:false,
+      isNewClient:true,
       showSelectClient:false,
       total:0,
       change:0,
@@ -467,9 +467,9 @@ export default {
             this.item.amount = this.total
             apiCreateTransaction(this.item).then(() => {
               this.snackbar=true
+              this.text ="Transaction Successfully saved!"
               this.showSelectClient=false,
               this.reset()
-              this.text ="Transaction Successfully saved!"
               this.initialize()
               this.dialogx = true
               this.$refs.form.reset()

@@ -569,6 +569,10 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           })
         } else {
           
+          if (this.variants.length < 1) {
+            alert('Please add product variant!')
+          }
+       
           this.$validator.validateAll().then(result => {
             if (result){
                 const formData = new FormData
