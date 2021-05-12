@@ -3,7 +3,7 @@
   <pdf-preview style="z-index:999;" :filename="filename" :dialog="previewDialogStatus" @closePdfPreview="previewDialogStatus=false"> </pdf-preview>
   <v-card-title>
       <h3>Products</h3>
-      <v-dialog v-model="dialog" max-width="700px">
+      <v-dialog v-model="dialog" max-width="850px">
           <template v-slot:activator="{ on, attrs }">
             <v-btn
               color="primary darken-3 btn-white"
@@ -25,8 +25,8 @@
        
             <v-card-text class="my-0 py-0">
               <v-container class="my-0 py-0">
-                <v-row no-gutters class="my-0 py-0">
-                  <v-col cols="4" >
+                <v-layout row wrap>
+                  <v-flex xs4>
                     <v-card  flat>
                       <h3>Image Preview</h3>
                       <v-card-text>
@@ -43,109 +43,105 @@
                         type="file" 
                         accept="image/jpeg" 
                         @change="uploadImage">
-                      </v-card-text>
-                    </v-card>
-                  </v-col>
-                  <v-col cols="8" >
-                    <v-text-field
-                      v-model="editedItem.name"
-                      label="Product name"
-                      v-validate="'required'"  
-                      :error-messages="errors.collect('Product Name')"
-                      data-vv-name="Product Name"
-                      hide-details="auto"
-                    ></v-text-field>
-                    <v-text-field
-                      v-model="editedItem.price"
-                      label="Price"
-                      v-validate="'required|decimal'"  
-                      :error-messages="errors.collect('price')"
-                      data-vv-name="price"
-                      type="number"
-                    ></v-text-field>
-                    <v-text-field
-                      v-model="editedItem.stocks"
-                      label="Stocks"
-                      v-validate="'required|numeric|min_value:1'"  
-                      :error-messages="errors.collect('Stocks')"
-                      data-vv-name="Stocks"
-                      readonly
-                      type="number"
-                      v-show="false"
-                    ></v-text-field>
-                     <v-select
-                      v-model="editedItem.product_category"
-                      :items="items"
-                      item-text="name"
-                      item-value="id"
-                      label="Category"
-                      dense
-                      v-validate="'required'"  
-                      :error-messages="errors.collect('Product Category')"
-                      data-vv-name="Product Category"
-                    ></v-select>  
-                  </v-col>
-                </v-row>
-                <v-row no-gutters style="border: 2px dashed gray;" class="pt-5 px-1">
-                  <v-col cols="2" class="text-center">
-                    <h4 class="ml-2">ADD</h4>
-                    <h4 class="ml-2">VARIANTS</h4>
-                  </v-col>
-                  <v-col cols="2">
-                    <v-text-field
-                      v-model="sku"
-                      label="SKU"
-                      dense
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="2">
-                    <v-select
-                      ref="size"
-                      v-model="size"
-                      :items="sizes"
-                      item-text="name"
-                      item-value="id"
-                      label="Sizes"
-                      flat
-                      solo
-                      dense
-                      class="py-0 my-0"
-                    ></v-select> 
-                  </v-col>
-                  <v-col cols="2">
-                    <v-select
-                      ref="color"
-                      v-model="color"
-                      :items="colors"
-                      item-text="name"
-                      item-value="id"
-                      label="Color"
-                      flat
-                      solo
-                      dense
-                      class="py-0 my-0"
-                    ></v-select> 
-                  </v-col>
-                  <v-col cols="2">
                       <v-text-field
-                      style="width:70%;"
-                      v-model="stocks"
-                      label="Stocks"
-                      dense
-                      type="number"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="2">
-                    <v-btn @click="addVariant" color="success" class=" white--text" outlined >
-                      add
-                      <v-icon right dark >
-                        mdi-check-circle
-                      </v-icon>
-                    </v-btn>
-                  </v-col>
-                </v-row>
-                <v-row no-gutters class="pt-0 mt-0">
-                  <v-col cols="12">
+                        v-model="editedItem.name"
+                        label="Product name"
+                        v-validate="'required'"  
+                        :error-messages="errors.collect('Product Name')"
+                        data-vv-name="Product Name"
+                        hide-details="auto"
+                      ></v-text-field>
+                      <v-text-field
+                        v-model="editedItem.price"
+                        label="Price"
+                        v-validate="'required|decimal'"  
+                        :error-messages="errors.collect('price')"
+                        data-vv-name="price"
+                        type="number"
+                      ></v-text-field>
+                      <v-text-field
+                        v-model="editedItem.stocks"
+                        label="Stocks"
+                        v-validate="'required|numeric|min_value:1'"  
+                        :error-messages="errors.collect('Stocks')"
+                        data-vv-name="Stocks"
+                        readonly
+                        type="number"
+                        v-show="false"
+                      ></v-text-field>
+                      <v-select
+                        v-model="editedItem.product_category"
+                        :items="items"
+                        item-text="name"
+                        item-value="id"
+                        label="Category"
+                        dense
+                        v-validate="'required'"  
+                        :error-messages="errors.collect('Product Category')"
+                        data-vv-name="Product Category"
+                      ></v-select> 
+                      </v-card-text>
+                    </v-card> 
+                  </v-flex>
+                  <v-flex xs8>
+                    <h4 class="ml-2">ADD PRODUCT VARIANTS</h4>
+                    <v-card class="mb-5">
+                      <v-container class="pa-6">
+                       <v-layout row wrap>
+                        <v-flex xs5>
+                          <v-text-field
+                            v-model="sku"
+                            label="SKU"
+                            dense
+                            hide-details="auto"
+                          ></v-text-field>
+                          <v-text-field
+                          class="mt-4"
+                          v-model="stocks"
+                          label="Stocks"
+                          dense
+                          type="number"
+                          hide-details="auto"
+                          ></v-text-field>
+                        </v-flex>
+                        <v-flex xs5>
+                          <v-select
+                            ref="size"
+                            v-model="size"
+                            :items="sizes"
+                            item-text="name"
+                            item-value="id"
+                            label="Sizes"
+                            flat
+                            solo
+                            dense
+                            hide-details="auto"
+                          ></v-select>
+                          <v-select
+                            class="mt-2"
+                            ref="color"
+                            v-model="color"
+                            :items="colors"
+                            item-text="name"
+                            item-value="id"
+                            label="Color"
+                            flat
+                            solo
+                            dense
+                            hide-details="auto"
+                          ></v-select>
+                        </v-flex>
+                        <v-flex xs2>
+                          <v-btn @click="addVariant" color="success" class=" white--text mt-7" outlined >
+                            add
+                            <v-icon right dark >
+                              mdi-check-circle
+                            </v-icon>
+                          </v-btn>
+                        </v-flex>
+                       </v-layout>
+                      </v-container>
+                    </v-card>
                     <v-simple-table dense class="mb-5" >
                       <thead>
                         <tr>
@@ -172,8 +168,8 @@
                         </tr>
                       </tbody>
                     </v-simple-table>
-                  </v-col>
-                </v-row>
+                  </v-flex>
+                </v-layout>
               </v-container>
             </v-card-text>
             <v-card-actions>
@@ -402,6 +398,15 @@
           </v-dialog>
         </v-row>
   </div>
+  <div v-else>
+      <v-alert
+        outlined
+        type="error"
+        class="mt-16 "
+      >
+        <strong >You are restricted to access this page!</strong>
+      </v-alert>
+    </div>
 </template>
 <script>
 import {apiUpdateProduct, apiGetAllProducts,apiCreateProduct,apiDeleteProduct,apiGetProduct, apiGenerateBarcode} from "@/api/product.api";
@@ -633,7 +638,7 @@ import PdfPreview from '@/components/features/PrintPreviewPdf'
           
         if(this.sku && this.stocks && this.colors && this.sizes){
           this.variants.push({
-            sku :  Math.floor(1000000000 + Math.random() * 900000),
+            sku :  this.sku,
             stocks: this.stocks,
             price: this.editedItem.price,
             size: this.$refs.size.selectedItems[0].name,

@@ -1,5 +1,5 @@
 <template>
-<div class="container mx-3">
+<div class="container mx-3" v-if="$store.getters.user.access_level < 2">
   <v-card-title>
       <h3>Products Category</h3>
       <v-dialog v-model="dialog" max-width="500px">
@@ -113,6 +113,15 @@
       </template>
     </v-snackbar>
   </div>
+  <div v-else>
+      <v-alert
+        outlined
+        type="error"
+        class="mt-16 "
+      >
+        <strong >You are restricted to access this page!</strong>
+      </v-alert>
+    </div>
 </template>
 <script>
 import {apiUpdateCategory, apiGetAllCategory,apiCreateCategory,apiDeleteCategory} from "@/api/category.api";

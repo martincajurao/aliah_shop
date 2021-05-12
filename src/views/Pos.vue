@@ -1,37 +1,37 @@
 <template >
     <div id="app" >
-        <v-container style="background-color:white;" >
+        <v-container >
+          <div >
+            <h3 style="display:inline-block;">Featured Products </h3>
+            <v-text-field
+              v-model="search"
+              prepend-inner-icon="mdi-magnify"
+              label="Search Product"
+              solo
+              flat
+              dense
+              @input="searchProduct"
+              class="my-0 py-0"
+              style="display:inline-block;"
+              
+            ></v-text-field>
+            <v-select
+              :items="items"
+              item-text="name"
+              item-value="id"
+              v-model="category"
+              label="Display by Category"
+              dense
+              solo
+              flat
+              hide-details="auto"
+              style="display:inline-block; margin-left:60px;"
+              @change="displayByCategory"
+            ></v-select>
+          </div>
           <v-row >
              <v-col md="8"  >
-              
-              <div style="width:20%; display:inline-block;"><h3>Recent Purchase </h3></div>
-              <div style="width:80%; display:inline-block;">
-                <v-text-field
-                v-model="barcode"
-                prepend-inner-icon="mdi-barcode"
-                label="barcode Reader"
-                solo
-                flat
-                autofocus
-                dense
-                @input="searchBarcode"
-                class="my-0 py-0"
-                style="position:absolute; top:11%; right:15%; width:20%;"
-                ></v-text-field>
-                <v-text-field
-                v-model="search"
-                prepend-inner-icon="mdi-magnify"
-                label="Search Product"
-                solo
-                flat
-                dense
-                @input="searchProduct"
-                class="my-0 py-0"
-                style="position:absolute; top:10%; width:46%;"
-                ></v-text-field>
-              </div>
-               <v-row class="mt-1">
-                
+               <v-row >
                 <v-card id="cards" v-for="item in products" :key="item.id"  class="mx-2 my-2"  max-width="181">
                   <v-img
                   height="150"
@@ -39,26 +39,6 @@
                   :src="`http://127.0.0.1:8000/images/${item.product.img}`"
                   ></v-img>
                  <h4 class="ml-3 mt-1 mb-0 dotdot">{{item.product.name}}</h4> 
-                  <!-- <v-select
-                      v-model="selected_variant"
-                      :items="item.sku"
-                      item-text="color" 
-                      item-value="id"
-                      label="Select Variant"
-                      dense
-                      style="height: 33px; font-weigth:9px !important;"
-                      flat
-                      solo
-                      class="pa-0 ma-0"
-                    >
-                    <template slot="selection" slot-scope="data">
-                      {{ data.item.color }} - {{ data.item.size }}
-                    </template>
-                    <template slot="item" slot-scope="data">
-                      {{ data.item.color }} - {{ data.item.size }}
-                    </template>
-                    </v-select> -->
-                
                 
                 <div class="px-3">
                   <div style="width:50%; display:inline-block; font-size:12px;">
@@ -89,8 +69,8 @@
                </v-row>
              </v-col>
              <v-col md="4" >
-              <v-card style="height:79vh;" class="mt-10 px-3 ">
-                <v-simple-table height="409">
+              <v-card class=" px-3 ">
+                <v-simple-table >
                     <thead>
                       <tr>
                         <!-- <th class="text-left" style="width:50px;"></th> -->
@@ -127,6 +107,20 @@
                   reset
                   <v-icon>mdi-cached</v-icon>
                 </v-btn>
+                <v-text-field
+                  v-model="barcode"
+                  prepend-inner-icon="mdi-barcode"
+                  label="barcode Reader"
+                  solo
+                  flat
+                  autofocus
+                  clearable
+                  dense
+                  @change.native="searchBarcode"
+                  class=" py-0 "
+                  style="width:70%; display:inline-block"
+                  hide-details="auto"
+                ></v-text-field>
                   <hr>
                   <div class="mt-2" >
                     <span style="width:50%; display:inline-block">Total tax:</span>
@@ -140,6 +134,7 @@
                       color="success"
                       @click="checkPaymentDialog"
                       style="width:100%;"
+                      class="mb-3"
                     >
                     <v-icon class="mr-1">mdi-credit-card-check </v-icon>
                       accept payment
@@ -155,7 +150,8 @@
                           <v-toolbar
                             color="info"
                             dark
-                          >Accept Payment</v-toolbar>
+                          >Accept Payment
+                          </v-toolbar>
                           <v-card-text class="pt-4">
                             
                           <v-form   ref="form" lazy-validation0 @submit.prevent="save" > 
@@ -323,9 +319,10 @@
     </div>
 </template>
 <script>
-import {apiGetFeaturedProducts,apiSearchProduct,apiSearchBarcode} from "@/api/product.api";
+import {apiGetFeaturedProducts,apiSearchProduct,apiSearchBarcode, apiDisplayByCategory} from "@/api/product.api";
 import {apiGetAllClients} from "@/api/client.api";
 import {apiCreateTransaction} from "@/api/transaction.api";
+import {apiGetAllCategory} from "@/api/category.api";
 import { ModelSelect } from 'vue-search-select'
 import 'vue-search-select/dist/VueSearchSelect.css'
 import FormatHelper from "@/mixins/FormatHelper"
@@ -333,6 +330,7 @@ import FormatHelper from "@/mixins/FormatHelper"
 export default {
     mixins:[FormatHelper],
     data: () => ({
+      category:null,
       selected_variant:'',
       barcode:'',
       search:'',
@@ -348,7 +346,8 @@ export default {
       cash:null,
       products:[],
       purchase:[],
-        headers: [
+      items:[],
+      headers: [
         // { text: "Image", value: "img", sortable: false },
         { text: 'Product', value: 'name' },
         { text: 'Qty', value: 1 },
@@ -385,6 +384,9 @@ export default {
           data = data.map(({ id, name, phone }) => ({ value: id, text: name, phone: phone }));
           this.options = data
           console.log(this.options,'clients')
+        })
+        apiGetAllCategory().then(({data}) =>{
+          this.items=data
         })
       },
       addToPurchase(val){
@@ -484,30 +486,22 @@ export default {
         });
       },
       searchProduct(){
-        apiSearchProduct(this.search).then(({data})=>{
+        apiSearchProduct(this.search, this.category).then(({data})=>{
           this.products = data
           console.log(data)
         })
       },
       searchBarcode(){
-        if (this.barcode.length==10) {
+        // if (this.barcode.length == 13) {
+        // }
+     
           apiSearchBarcode(this.barcode).then(({data})=>{
-            //  let qty=1
-            // this.purchase.push({
-            //   id : data[0].id,
-            //   img : data[0].img,
-            //   name : data[0].name,
-            //   price : data[0].price,
-            //   qty : 1,
-            //   subtotal : (qty * data[0].price),
-            // })
-            //   this.computeTotal()
-
             this.addToPurchase(data[0])
-              this.barcode=''
               console.log(data[0])
+          }).finally( () =>{
+            this.barcode=null
           })
-        }
+        
       },
       justCreateNew(){
         this.showSelectClient=false,
@@ -526,6 +520,11 @@ export default {
           this.paymentDialog = true
         }
       },
+      displayByCategory(){
+        apiDisplayByCategory(this.category).then(({data})=>{
+          this.products = data
+        })
+      }
       
   },
   components: {

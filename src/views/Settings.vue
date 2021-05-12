@@ -1,5 +1,5 @@
 <template>
-    <div class="pt-1">
+    <div class="pt-1" v-if="$store.getters.user.access_level < 2">
 
       <v-card>
        <h2 class="my-4">Store and Variant Settings</h2>
@@ -112,6 +112,15 @@
             </v-btn>
           </template>
         </v-snackbar>
+    </div>
+    <div v-else>
+      <v-alert
+        outlined
+        type="error"
+        class="mt-16 "
+      >
+        <strong >You are restricted to access this page!</strong>
+      </v-alert>
     </div>
 </template>
 <script>

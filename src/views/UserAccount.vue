@@ -160,6 +160,15 @@
       </template>
     </v-snackbar>
   </div>
+  <div v-else>
+      <v-alert
+        outlined
+        type="error"
+        class="mt-16 "
+      >
+        <strong >You are restricted to access this page!</strong>
+      </v-alert>
+    </div>
 </template>
 <script>
 import {apiGetAllUsers,apiCreateUser,apiGetUser,apiDeleteUser,apiUpdateUser } from "@/api/user.api";
